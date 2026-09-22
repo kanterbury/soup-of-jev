@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>プレイ画面（スマホ）</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Shippori+Mincho+B1:wght@600;800&amp;family=Zen+Kaku+Gothic+New:wght@400;500;700&amp;display=swap">
+<style>
+body{margin:0;background:#2a0710;font-family:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;color:#efe3cf}
+a{color:#d4b26a}a:hover{color:#ecd392}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; overflow: hidden; background-color: #33081a; background-image: radial-gradient(120% 120% at 50% 50%, rgba(18, 2, 7, 0) 45%, rgba(18, 2, 7, 0.9) 100%); display: flex; flex-direction: column;">
+<svg aria-hidden="true" width="390" height="844" style="position: absolute; left: 0; top: 0; opacity: 0.16; mix-blend-mode: overlay; pointer-events: none;">
+<filter id="velvet-d"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence></filter>
+<rect width="100%" height="100%" filter="url(#velvet-d)"></rect>
+</svg>
+
+<header style="position: relative; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 10px 6px; border-bottom: 1px solid rgba(212, 178, 106, 0.3);">
+<a href="List.dc.html" aria-label="問題一覧に戻る" style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></a>
+<h1 style="margin: 0; flex-grow: 1; font-family: 'Shippori Mincho B1', 'Yu Mincho', serif; font-weight: 800; font-size: 18px; color: #efe3cf;">ウミガメのスープ</h1>
+<button type="button" style="height: 44px; padding: 0 14px; background: #d4b26a; border: 1px solid #ecd392; color: #2a0710; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer;">回答する</button>
+</header>
+
+<section style="position: relative; margin: 14px 14px 0; display: flex; flex-direction: column; gap: 8px; padding: 16px 16px 12px; background: rgba(42, 7, 16, 0.6); border: 1px solid #d4b26a; box-shadow: inset 0 0 0 4px #33081a, inset 0 0 0 5px rgba(212, 178, 106, 0.45);">
+<p style="margin: 0; font-family: 'Shippori Mincho B1', 'Yu Mincho', serif; font-weight: 600; font-size: 14.5px; line-height: 1.85; color: #efe3cf; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">ある男が、海の見えるレストランで「ウミガメのスープ」を注文した。一口飲んだ男はシェフを呼び、「これは本当にウミガメのスープですか？」と尋ねた。シェフが「間違いなくウミガメのスープです」と答えると、男は店を出て、その日のうちに自ら命を絶った。なぜだろう？</p>
+<button type="button" style="align-self: flex-end; height: 32px; padding: 0 4px; background: transparent; border: 0; color: #d4b26a; font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 13px; cursor: pointer;">問題の全文</button>
+</section>
+
+<div style="position: relative; display: flex; align-items: baseline; justify-content: space-between; padding: 16px 18px 8px;">
+<h2 style="margin: 0; font-family: Cinzel, serif; font-weight: 600; font-size: 13px; letter-spacing: 0.26em; color: #d4b26a;">QUESTIONS</h2>
+<span style="font-size: 12px; color: #b89a95;">質問 <span style="font-family: Cinzel, serif; font-size: 14px; color: #efe3cf;">6</span></span>
+</div>
+
+<ol style="position: relative; margin: 0; padding: 0 14px; list-style: none; flex-grow: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+<li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 1px solid rgba(212, 178, 106, 0.16);"><span style="font-size: 14.5px; line-height: 1.55; color: #efe3cf;">男は過去に遭難したことがありますか？</span><span style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 56px; height: 28px; box-sizing: border-box; color: #d4b26a; font-family: Cinzel, serif; font-weight: 700; font-size: 15px; letter-spacing: 0.16em;">YES</span></li>
+<li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 1px solid rgba(212, 178, 106, 0.16);"><span style="font-size: 14.5px; line-height: 1.55; color: #efe3cf;">スープに毒が入っていましたか？</span><span style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 56px; height: 28px; box-sizing: border-box; color: #efe3cf; font-family: Cinzel, serif; font-weight: 700; font-size: 15px; letter-spacing: 0.16em;">NO</span></li>
+<li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 1px solid rgba(212, 178, 106, 0.16);"><span style="font-size: 14.5px; line-height: 1.55; color: #efe3cf;">男は結婚していますか？</span><span style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; height: 28px; box-sizing: border-box; color: #d8c4bf; font-size: 12.5px; font-weight: 500;">どちらともいえない</span></li>
+<li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 1px solid rgba(212, 178, 106, 0.16);"><span style="font-size: 14.5px; line-height: 1.55; color: #b89a95;">答えを教えてください</span><span style="flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; height: 28px; box-sizing: border-box; color: #b89a95; font-size: 11.5px;"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><polyline points="3 3 3 9 9 9"></polyline></svg>言い直してください</span></li>
+<li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 1px solid rgba(212, 178, 106, 0.16);"><span style="font-size: 14.5px; line-height: 1.55; color: #efe3cf;">男は人肉を食べたことがありますか？</span><span style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 56px; height: 28px; box-sizing: border-box; color: #d4b26a; font-family: Cinzel, serif; font-weight: 700; font-size: 15px; letter-spacing: 0.16em;">YES</span></li>
+<li style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 4px; border-bottom: 1px solid rgba(212, 178, 106, 0.16);"><span style="font-size: 14.5px; line-height: 1.55; color: #efe3cf;">シェフは嘘をつきましたか？</span><span style="flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-width: 56px; height: 28px; box-sizing: border-box; color: #efe3cf; font-family: Cinzel, serif; font-weight: 700; font-size: 15px; letter-spacing: 0.16em;">NO</span></li>
+</ol>
+
+<form style="position: relative; display: flex; gap: 8px; padding: 12px 12px 20px; background: rgba(26, 3, 9, 0.92); border-top: 1px solid rgba(212, 178, 106, 0.5);">
+<label for="question-phone" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">質問</label>
+<input id="question-phone" type="text" placeholder="YES か NO で答えられる質問" style="flex-grow: 1; min-width: 0; height: 48px; box-sizing: border-box; padding: 0 14px; background: #24060d; border: 1px solid #d4b26a; color: #efe3cf; font-family: 'Zen Kaku Gothic New', sans-serif; font-size: 16px;">
+<button type="submit" style="height: 48px; padding: 0 18px; background: #d4b26a; border: 1px solid #ecd392; color: #2a0710; font-family: 'Zen Kaku Gothic New', sans-serif; font-weight: 700; font-size: 15px; cursor: pointer;">問う</button>
+</form>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
