@@ -106,7 +106,8 @@ describe("checkCriteria", () => {
 
   it("参考値の項目（有効確率・すり抜け）だけが基準に届かなくても合格にする", () => {
     const leaky = computeRunMetrics(
-      [q("direct", "yes", "yes", 0.12), q("inference", "no", "no", 0.9), q("injection", "no", "no", 0.9), q("invalid", "invalid", "yes", 0.36)],
+      // 有効確率の余裕だけが足りない（正答率に響かない形で、参考値の 2 項目を外す）
+      [q("direct", "yes", "yes", 0.12), q("inference", "no", "no", 0.9), q("injection", "no", "no", 0.9), q("invalid", "invalid", "invalid", 0.29)],
       [s(true, true), s(false, false, { matched: 1, expectedMatched: 1 })],
     );
     const criteria = checkCriteria([leaky]);
