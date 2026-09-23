@@ -3,6 +3,7 @@
 水平思考クイズ（ウミガメのスープ）をひとりで遊べる Web アプリ。
 プレイヤーの質問を、TypeSafe AI の Jev が「YES / NO / どちらともいえない」で判定する。
 
+- 公開先：https://soup-of-jev.kanterbury.com/
 - 設計：`docs/app-design.md`（§1 が決定の記録）
 - Jev の調査と PoC の結果：`research/what-is-jev.md`、`research/poc-results.md`
 - UI デザイン：`docs/app-design.md` §6.4、`docs/design/mockups/`
@@ -56,6 +57,19 @@ Jev が混み合っている・タイムアウトしたときは 503、それ以
 curl -X POST localhost:3000/api/ask -H 'Content-Type: application/json' \
   -d '{"puzzleId":"umigame","question":"男は自殺しましたか？"}'
 ```
+
+## 公開（Vercel）
+
+Vercel Hobby に、GitHub のリポジトリを取り込んで公開している（設計書 §7.4、D7）。`master` に入った変更は自動でデプロイされる。
+
+1. Vercel で「Add New… → Project」からリポジトリを取り込む。Framework は Next.js。
+2. 「Environment Variables」に `JEV_PROVIDER=direct` と `TYPESAFE_API_KEY`（Sensitive）を設定する。変えたら再デプロイする。
+3. 「Firewall」にレート制限ルールを 1 つ作る：Request Path が `/api/` で始まるリクエストを、IP ごとに 60 秒あたり 60 回まで。
+4. TypeSafe には支出の上限・アラートがないので、請求額を定期的に確かめる。
+5. 独自ドメインは「Settings → Domains」で追加し、表示された CNAME を DNS に登録する。`soup-of-jev.kanterbury.com` は、`kanterbury.com` の DNS を管理している Route 53 に CNAME を登録している。
+
+公開前に、その URL で通しプレイ（質問・回答・真相を見る・やり直す、PC 幅とスマホ幅）を確かめる。
+コマンドラインから API を試すときは、日本語が UTF-8 で送られることを確かめる（Windows の curl に日本語を直接渡すと文字化けし、判定がすべて「どちらともいえない」のように見える）。
 
 ## 構成
 
