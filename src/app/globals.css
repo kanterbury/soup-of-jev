@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+/* 設計書 §6.4 の配色と書体。テーマは 1 つだけ（ライトモードなし、dark: バリアントは使わない） */
+@theme {
+  --color-velvet: #33081a;
+  --color-velvet-deep: #24060d;
+  --color-shadow: #2a0710;
+  --color-gold: #d4b26a;
+  --color-gold-light: #ecd392;
+  --color-gold-muted: #b8975a;
+  --color-ivory: #efe3cf;
+  --color-rose: #d8c4bf;
+  --color-rose-muted: #cdb7b2;
+  --color-dim: #b89a95;
+
+  --font-display: "Shippori Mincho B1", "Yu Mincho", "Hiragino Mincho ProN", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font-label: "Cinzel", "Times New Roman", serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--color-velvet);
+    color: var(--color-ivory);
+    font-family: var(--font-body);
+  }
+  a {
+    color: var(--color-gold);
+  }
+  a:hover {
+    color: var(--color-gold-light);
+  }
+  ::selection {
+    background: rgb(212 178 106 / 0.35);
+  }
+}
+
+/* 部品のクラス。components 層に置き、Tailwind のユーティリティ（px-*、hidden など）で上書きできるようにする */
+@layer components {
+  /* カードの二重枠：金の 1px の枠線の内側に、地の色と金の細線を重ねる */
+  .frame-double {
+    border: 1px solid var(--color-gold);
+    background: rgb(42 7 16 / 0.6);
+    box-shadow:
+      inset 0 0 0 5px var(--color-velvet),
+      inset 0 0 0 6px rgb(212 178 106 / 0.45),
+      0 24px 48px rgb(10 0 3 / 0.55);
+  }
+
+  /* 主ボタン：金の塗り、暗い文字 */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding-inline: 22px;
+    background: var(--color-gold);
+    border: 1px solid var(--color-gold-light);
+    color: var(--color-shadow);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    cursor: pointer;
+    &:hover {
+      background: var(--color-gold-light);
+      color: var(--color-shadow);
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  /* 副ボタン：透明の地、金 60% の枠線、金の文字 */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding-inline: 18px;
+    background: transparent;
+    border: 1px solid rgb(212 178 106 / 0.6);
+    color: var(--color-gold);
+    font-weight: 500;
+    font-size: 15px;
+    text-decoration: none;
+    cursor: pointer;
+    &:hover {
+      border-color: var(--color-gold-light);
+      color: var(--color-gold-light);
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  /* 欧文ラベル（THE MYSTERY、QUESTIONS など） */
+  .label-caps {
+    font-family: var(--font-label);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.26em;
+  }
+
+  /* 入力欄 */
+  .field {
+    background: var(--color-velvet-deep);
+    border: 1px solid var(--color-gold);
+    color: var(--color-ivory);
+    &::placeholder {
+      color: rgb(184 154 149 / 0.8);
+    }
+    &:focus {
+      outline: 2px solid rgb(236 211 146 / 0.6);
+      outline-offset: 1px;
+    }
+  }
+}
