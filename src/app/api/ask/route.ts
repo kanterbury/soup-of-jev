@@ -1,26 +1,23 @@
+import { badRequest, errorResponse, findPuzzle, puzzleNotFound, readJson, readText } from "@/lib/api";
 import { createJevClient } from "@/lib/jev/client";
 import { judgeQuestion } from "@/lib/judge";
-import { getPuzzle } from "@/lib/puzzles";
 
 export const runtime = "nodejs";
 
 const MAX_QUESTION_LENGTH = 200;
 
 export async function POST(request: Request) {
-  const { puzzleId, question } = (await request.json().catch(() => ({}))) as {
-    puzzleId?: string;
-    question?: string;
-  };
-  if (typeof question !== "string" || !question.trim() || question.length > MAX_QUESTION_LENGTH) {
-    return Response.json({ error: `question は 1〜${MAX_QUESTION_LENGTH} 文字で指定してください` }, { status: 400 });
-  }
-  const puzzle = typeof puzzleId === "string" ? getPuzzle(puzzleId) : undefined;
-  if (!puzzle) return Response.json({ error: "puzzle が見つかりません" }, { status: 404 });
+  const { puzzleId, question: rawQuestion } = await readJson(request);
+  const question = readText(rawQuestion, MAX_QUESTION_LENGTH);
+  if (!question) return badRequest(`question は 1〜${MAX_QUESTION_LENGTH} 文字で指定してください`);
+  const puzzle = findPuzzle(puzzleId);
+  if (!puzzle) return puzzleNotFound();
 
-  const judgement = await judgeQuestion(createJevClient(), puzzle, question.trim());
-  // 真相に関わる情報（確率分布など）は返さず、判定結果だけを返す
-  return Response.json({
-    verdict: judgement.verdict,
-    confidence: judgement.confidence,
-  });
+  try {
+    const { verdict } = await judgeQuestion(createJevClient(), puzzle, question);
+    // 確信度や内部の判定（irrelevant / uncertain）はヒントになるので返さない（設計書 R2）
+    return Response.json({ verdict });
+  } catch (e) {
+    return errorResponse(e);
+  }
 }

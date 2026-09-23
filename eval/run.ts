@@ -3,12 +3,22 @@
  *
  *   npm run eval                     # baseline だけ実行
  *   npm run eval -- --all            # 4 つの条件をすべて実行（facts なし / 英語テンプレート / YES/NO 表記も比較）
- *   npm run eval -- --variant=en --puzzle=bar --threshold=0.6
+ *   npm run eval -- --variant=en --puzzle=bar
+ *
+ * 閾値はアプリと同じ定数（DEFAULT_JUDGE_OPTIONS / DEFAULT_SOLUTION_OPTIONS）を使う。
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { createJevClient, type JevClient } from "../src/lib/jev/client";
-import { DEFAULT_JUDGE_OPTIONS, judgeQuestion, judgeSolution, type JudgeOptions, type QuestionJudgement, type Verdict } from "../src/lib/judge";
+import { createJevClient, JEV_MODEL, type JevClient } from "../src/lib/jev/client";
+import {
+  DEFAULT_JUDGE_OPTIONS,
+  DEFAULT_SOLUTION_OPTIONS,
+  judgeQuestion,
+  judgeSolution,
+  type JudgeOptions,
+  type QuestionJudgement,
+  type Verdict,
+} from "../src/lib/judge";
 import { getPuzzle } from "../src/lib/puzzles";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
@@ -29,8 +39,7 @@ const args = Object.fromEntries(
     return [k, v ?? "true"];
   }),
 );
-const threshold = Number(args.threshold ?? 0.5);
-const base: JudgeOptions = { useFacts: true, lang: "ja", labels: "fact", confidenceThreshold: threshold, validThreshold: DEFAULT_JUDGE_OPTIONS.validThreshold };
+const base: JudgeOptions = DEFAULT_JUDGE_OPTIONS;
 const VARIANTS: Record<string, JudgeOptions> = {
   baseline: base,
   "no-facts": { ...base, useFacts: false },
@@ -47,7 +56,7 @@ const caseFiles: CaseFile[] = readdirSync("eval/cases")
   .filter((c) => !args.puzzle || c.puzzleId === args.puzzle);
 
 const client = createJevClient();
-console.log(`client: ${client.name} / threshold: ${threshold}\n`);
+console.log(`client: ${client.name} / confidence: ${base.confidenceThreshold} / valid: ${base.validThreshold}\n`);
 
 for (const variant of variantNames) {
   const options = VARIANTS[variant];
@@ -91,7 +100,11 @@ async function runVariant(variant: string, options: JudgeOptions, client: JevCli
 
   mkdirSync("eval/results", { recursive: true });
   const outPath = path.join("eval/results", `${new Date().toISOString().replace(/[:.]/g, "-")}-${variant}.json`);
-  writeFileSync(outPath, JSON.stringify({ variant, options, client: client.name, questionResults, solutionResults }, null, 2));
+  const solutionOptions = { ...DEFAULT_SOLUTION_OPTIONS, lang: options.lang };
+  writeFileSync(
+    outPath,
+    JSON.stringify({ variant, client: client.name, model: JEV_MODEL, options, solutionOptions, questionResults, solutionResults }, null, 2),
+  );
   console.log(`結果: ${outPath}\n`);
 }
 
@@ -137,7 +150,17 @@ function printCalibration(results: QuestionResult[]) {
   console.table(rows);
 }
 
-function printSolutions(results: { puzzleId: string; answer: string; expectedSolved: boolean; solved: boolean; pointProbabilities: number[]; correct: boolean }[]) {
+function printSolutions(
+  results: {
+    puzzleId: string;
+    answer: string;
+    expectedSolved: boolean;
+    solved: boolean;
+    pointProbabilities: number[];
+    consistentProbability: number;
+    correct: boolean;
+  }[],
+) {
   console.log(`正解判定: ${pct(results.filter((r) => r.correct).length, results.length)}`);
   console.table(
     results.map((r) => ({
@@ -145,6 +168,7 @@ function printSolutions(results: { puzzleId: string; answer: string; expectedSol
       expected: r.expectedSolved,
       solved: r.solved,
       points: r.pointProbabilities.map((p) => p.toFixed(2)).join(" "),
+      consistent: r.consistentProbability.toFixed(2),
       answer: r.answer.slice(0, 30),
     })),
   );
