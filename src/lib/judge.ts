@@ -1,7 +1,15 @@
 import type { JevAnswer, JevClient, JevQuestion } from "./jev/client";
 import type { Puzzle } from "./puzzles";
 
+/** クライアントに返す判定。irrelevant と uncertain はどちらも unknown になる */
 export type Verdict = "yes" | "no" | "unknown" | "invalid";
+
+/** サーバー側だけで持つ判定。irrelevant（無関係）と uncertain（確信度が低い）を区別する（設計書 Q3） */
+export type InternalVerdict = "yes" | "no" | "irrelevant" | "uncertain" | "invalid";
+
+export function toPublicVerdict(verdict: InternalVerdict): Verdict {
+  return verdict === "irrelevant" || verdict === "uncertain" ? "unknown" : verdict;
+}
 
 export type JudgeOptions = {
   /** state に facts を含めるか（PoC の比較用） */
@@ -10,7 +18,7 @@ export type JudgeOptions = {
   lang: "ja" | "en";
   /** 選択肢を「事実である/事実でない」で表すか、「YES/NO」で表すか */
   labels: "fact" | "yesno";
-  /** answer の確信度がこれ未満なら unknown に倒す */
+  /** answer の確信度がこれ未満（または確信度がない）なら uncertain に倒す */
   confidenceThreshold: number;
   /** isValidQuestion の確率がこれ未満なら invalid とする */
   validThreshold: number;
@@ -20,13 +28,15 @@ export const DEFAULT_JUDGE_OPTIONS: JudgeOptions = {
   useFacts: true,
   lang: "ja",
   labels: "fact",
-  confidenceThreshold: Number(process.env.JUDGE_CONFIDENCE_THRESHOLD ?? 0.5),
-  // PoC（2026-09-22）では、普通の質問の最小値が 0.45、質問でない入力の最大値が 0.24 だった
+  // 閾値は評価と同じ値を使うため定数にする（環境変数で上書きしない。設計書 R4）
+  confidenceThreshold: 0.5,
+  // PoC 3 回目（2026-09-22）では、普通の質問の最小値が 0.42、質問でない入力の最大値が 0.25 だった
   validThreshold: 0.3,
 };
 
 export type QuestionJudgement = {
   verdict: Verdict;
+  internalVerdict: InternalVerdict;
   /** 閾値を適用する前の Jev の選択 */
   rawChoice: "true" | "false" | "unknown";
   confidence: number | undefined;
@@ -54,6 +64,7 @@ const TEMPLATES = {
     valid:
       "プレイヤーの入力（playerQuestion）は、YES か NO で答えられる形の質問である。質問の内容が物語に関係あるかどうかは問わない。",
     keyPoint: (point: string) => `プレイヤーの回答（playerAnswer）は次の要点を含んでいる：「${point}」`,
+    consistent: "プレイヤーの回答（playerAnswer）は、真相と矛盾する内容や、互いに相反する複数の仮説を含まない。",
   },
   en: {
     answer:
@@ -71,6 +82,8 @@ const TEMPLATES = {
     valid:
       "The player's input (playerQuestion) is a question in a form that can be answered with YES or NO, regardless of whether its content is related to the story.",
     keyPoint: (point: string) => `The player's answer (playerAnswer) contains this key point: "${point}"`,
+    consistent:
+      "The player's answer (playerAnswer) contains nothing that contradicts the truth, and does not list multiple mutually conflicting hypotheses.",
   },
 } as const;
 
@@ -97,13 +110,17 @@ export async function judgeQuestion(
   const validProbability = expectType(result.answers.isValidQuestion, "boolean").probability;
   const rawChoice = answer.choice as QuestionJudgement["rawChoice"];
 
-  let verdict: Verdict;
-  if (validProbability < options.validThreshold) verdict = "invalid";
-  else if ((answer.confidence ?? 1) < options.confidenceThreshold) verdict = "unknown";
-  else verdict = rawChoice === "true" ? "yes" : rawChoice === "false" ? "no" : "unknown";
+  // 設計書 §4.3 の合成ルール（上から順に判定する）
+  let internalVerdict: InternalVerdict;
+  if (validProbability < options.validThreshold) internalVerdict = "invalid";
+  else if (answer.confidence === undefined || answer.confidence < options.confidenceThreshold) internalVerdict = "uncertain";
+  else if (rawChoice === "true") internalVerdict = "yes";
+  else if (rawChoice === "false") internalVerdict = "no";
+  else internalVerdict = "irrelevant";
 
   return {
-    verdict,
+    verdict: toPublicVerdict(internalVerdict),
+    internalVerdict,
     rawChoice,
     confidence: answer.confidence,
     probabilities: answer.probabilities,
@@ -113,37 +130,63 @@ export async function judgeQuestion(
   };
 }
 
+export type SolutionOptions = {
+  lang: "ja" | "en";
+  /** 要点を含んでいるとみなす確率 */
+  pointThreshold: number;
+  /** 矛盾や相反する仮説を含まないとみなす確率。仮の値で、公開前評価の調整用データで決めて凍結する（設計書 §4.4） */
+  consistencyThreshold: number;
+};
+
+export const DEFAULT_SOLUTION_OPTIONS: SolutionOptions = {
+  lang: "ja",
+  pointThreshold: 0.7,
+  consistencyThreshold: 0.7,
+};
+
 export type SolutionJudgement = {
   solved: boolean;
   /** 満たした要点の数（要点の中身はクライアントに返さない） */
   matched: number;
   total: number;
   pointProbabilities: number[];
+  /** 回答が矛盾や相反する仮説を含まない確率 */
+  consistentProbability: number;
   latencyMs: number;
 };
 
-/** 要点ごとに独立した boolean 質問を並列で投げ、コード側で合成する。 */
+/**
+ * 要点ごとの boolean 質問と、矛盾がないかの boolean 質問を並列で投げ、コード側で合成する。
+ * 正解の条件は「すべての要点を含み、かつ矛盾や相反する仮説を含まない」（仮説の羅列で正解にならないようにする。設計書 R3）。
+ */
 export async function judgeSolution(
   client: JevClient,
   puzzle: Puzzle,
   playerAnswer: string,
-  { lang = "ja", pointThreshold = 0.7 }: { lang?: "ja" | "en"; pointThreshold?: number } = {},
+  options: Partial<SolutionOptions> = {},
 ): Promise<SolutionJudgement> {
+  const { lang, pointThreshold, consistencyThreshold } = { ...DEFAULT_SOLUTION_OPTIONS, ...options };
   const t = TEMPLATES[lang];
-  const questions: Record<string, JevQuestion> = Object.fromEntries(
-    puzzle.keyPoints.map((point, i) => [`kp${i}`, { type: "boolean", instructions: t.keyPoint(point) }]),
-  );
+  const questions: Record<string, JevQuestion> = {
+    ...Object.fromEntries(
+      puzzle.keyPoints.map((point, i) => [`kp${i}`, { type: "boolean", instructions: t.keyPoint(point) }]),
+    ),
+    consistent: { type: "boolean", instructions: t.consistent },
+  };
   const result = await client.evaluate({ problem: puzzle.problem, truth: puzzle.truth, playerAnswer }, questions);
 
   const pointProbabilities = puzzle.keyPoints.map(
     (_, i) => expectType(result.answers[`kp${i}`], "boolean").probability,
   );
+  const consistentProbability = expectType(result.answers.consistent, "boolean").probability;
+  // matched は矛盾の判定に関係なく、要点ごとの判定だけで数える
   const matched = pointProbabilities.filter((p) => p >= pointThreshold).length;
   return {
-    solved: matched === puzzle.keyPoints.length,
+    solved: matched === puzzle.keyPoints.length && consistentProbability >= consistencyThreshold,
     matched,
     total: puzzle.keyPoints.length,
     pointProbabilities,
+    consistentProbability,
     latencyMs: result.latencyMs,
   };
 }

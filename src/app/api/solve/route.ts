@@ -1,22 +1,23 @@
+import { badRequest, errorResponse, findPuzzle, puzzleNotFound, readJson, readText } from "@/lib/api";
 import { createJevClient } from "@/lib/jev/client";
 import { judgeSolution } from "@/lib/judge";
-import { getPuzzle } from "@/lib/puzzles";
 
 export const runtime = "nodejs";
 
 const MAX_ANSWER_LENGTH = 500;
 
 export async function POST(request: Request) {
-  const { puzzleId, answer } = (await request.json().catch(() => ({}))) as {
-    puzzleId?: string;
-    answer?: string;
-  };
-  if (typeof answer !== "string" || !answer.trim() || answer.length > MAX_ANSWER_LENGTH) {
-    return Response.json({ error: `answer は 1〜${MAX_ANSWER_LENGTH} 文字で指定してください` }, { status: 400 });
-  }
-  const puzzle = typeof puzzleId === "string" ? getPuzzle(puzzleId) : undefined;
-  if (!puzzle) return Response.json({ error: "puzzle が見つかりません" }, { status: 404 });
+  const { puzzleId, answer: rawAnswer } = await readJson(request);
+  const answer = readText(rawAnswer, MAX_ANSWER_LENGTH);
+  if (!answer) return badRequest(`answer は 1〜${MAX_ANSWER_LENGTH} 文字で指定してください`);
+  const puzzle = findPuzzle(puzzleId);
+  if (!puzzle) return puzzleNotFound();
 
-  const { solved, matched, total } = await judgeSolution(createJevClient(), puzzle, answer.trim());
-  return Response.json({ solved, matched, total, truth: solved ? puzzle.truth : undefined });
+  try {
+    const { solved, matched, total } = await judgeSolution(createJevClient(), puzzle, answer);
+    // 真相は正解したときだけ返す。要点の中身は返さない
+    return Response.json(solved ? { solved, matched, total, truth: puzzle.truth } : { solved, matched, total });
+  } catch (e) {
+    return errorResponse(e);
+  }
 }

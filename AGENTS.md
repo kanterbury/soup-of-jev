@@ -1,7 +1,7 @@
 # AGENTS.md
 
 水平思考クイズ（ウミガメのスープ）のプレイヤーの質問を、TypeSafe AI の Jev で「YES / NO / どちらともいえない」に判定する Web アプリ。
-現状は PoC（判定ロジック・API・評価）と、アプリ化の設計・UI デザインまで。プレイ画面などのアプリ本体は未実装。
+設計書（`docs/app-design.md`）のフェーズ 1（サーバー側）とフェーズ 2（問題一覧・プレイ画面）まで実装済み。評価セットの拡充（§7.1〜7.2）と公開（§7.4）は未着手。
 
 ## 公開を前提に書く
 
@@ -29,3 +29,13 @@
 - **言語**：ドキュメント・コメント・コミットメッセージは日本語。コード上の識別子は英語。
 - **ブランチ**：既定のブランチは `master`。新しいブランチ名は半角英数字とハイフン・スラッシュ・アンダースコアで付ける（例：`feature/play-screen`）。
 - **TypeScript 7**：`types` の既定値が変わったため、`tsconfig.json` で `"types": ["node"]` を明示している。外すと Node の型が見つからなくなる。
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
