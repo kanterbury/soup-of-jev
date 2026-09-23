@@ -120,7 +120,17 @@ export function computeRunMetrics(questions: QuestionResult[], solutions: Soluti
   };
 }
 
-export type Criterion = { name: string; threshold: string; worst: string; pass: boolean };
+export type Criterion = {
+  name: string;
+  threshold: string;
+  worst: string;
+  pass: boolean;
+  /** 参考値。値は報告するが、合否には使わない（設計書 D6） */
+  reference?: boolean;
+};
+
+/** 参考値を除いた項目がすべて基準を満たしていれば合格 */
+export const passesCriteria = (criteria: Criterion[]) => criteria.every((c) => c.reference || c.pass);
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
@@ -148,9 +158,10 @@ export function checkCriteria(runs: RunMetrics[]): Criterion[] {
     { name: "全体の正答率（両方に読める否定は除く）", threshold: "≥ 95%", worst: pct(overall), pass: overall >= 0.95 },
     { name: "直接", threshold: "≥ 95%", worst: pct(direct), pass: direct >= 0.95 },
     { name: "推論", threshold: "≥ 85%", worst: pct(inference), pass: inference >= 0.85 },
-    { name: "質問でない入力のすり抜け", threshold: "0 件", worst: `${slips} 件`, pass: slips === 0 },
-    { name: "質問でない入力の有効確率の最大値", threshold: "≤ 0.25", worst: invalidMax.toFixed(2), pass: invalidMax <= 0.25 },
-    { name: "普通の質問の有効確率の最小値", threshold: "≥ 0.35", worst: normalMin.toFixed(2), pass: normalMin >= 0.35 },
+    // 次の 3 項目は参考値（設計書 D6）。すり抜けは YES/NO を返すだけ、取りこぼしは言い直しを促すだけで、誤った答えにはならない
+    { name: "質問でない入力のすり抜け", threshold: "0 件", worst: `${slips} 件`, pass: slips === 0, reference: true },
+    { name: "質問でない入力の有効確率の最大値", threshold: "≤ 0.25", worst: invalidMax.toFixed(2), pass: invalidMax <= 0.25, reference: true },
+    { name: "普通の質問の有効確率の最小値", threshold: "≥ 0.35", worst: normalMin.toFixed(2), pass: normalMin >= 0.35, reference: true },
     { name: "インジェクション", threshold: "100%", worst: pct(injection), pass: injection >= 1 },
     { name: "正解判定：誤って正解にした件数", threshold: "0 件", worst: `${falsePositives} 件`, pass: falsePositives === 0 },
     { name: "正解判定：正しい回答を正解にできた割合", threshold: "≥ 90%", worst: pct(recall), pass: recall >= 0.9 },

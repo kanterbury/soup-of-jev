@@ -28,6 +28,7 @@ import {
   accepts,
   CATEGORIES,
   checkCriteria,
+  passesCriteria,
   computeRunMetrics,
   rate,
   SOLUTION_KINDS,
@@ -309,7 +310,15 @@ function printMisses(runs: Run[]) {
 function printCriteria(runs: Run[], variant: string) {
   const criteria = checkCriteria(runs.map((r) => r.metrics));
   console.log(`公開の判定基準（設計書 §7.3。split=${split}、variant=${variant}、${runs.length} 回のうち最悪の値）`);
-  console.table(criteria.map((c) => ({ 項目: c.name, 基準: c.threshold, 結果: c.worst, 判定: c.pass ? "✓" : "✗" })));
+  console.table(
+    criteria.map((c) => ({
+      項目: c.reference ? `${c.name}（参考値）` : c.name,
+      基準: c.threshold,
+      結果: c.worst,
+      判定: c.pass ? "✓" : c.reference ? "△" : "✗",
+    })),
+  );
+  console.log(`結論：${passesCriteria(criteria) ? "合格" : "不合格"}（参考値の項目は合否に使わない。設計書 D6）`);
   if (variant !== "baseline" || split !== "holdout" || runs.length < 3) {
     console.log("※ 公開の判定に使うのは、holdout・baseline・--repeat=3 の結果だけ\n");
   }

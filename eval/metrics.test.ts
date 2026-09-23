@@ -3,6 +3,7 @@ import type { Verdict } from "../src/lib/judge";
 import {
   checkCriteria,
   computeRunMetrics,
+  passesCriteria,
   sweepConsistency,
   type Category,
   type Expected,
@@ -101,6 +102,17 @@ describe("checkCriteria", () => {
     expect(failed).toEqual(
       expect.arrayContaining(["直接", "質問でない入力の有効確率の最大値", "正解判定：誤って正解にした件数"]),
     );
+  });
+
+  it("参考値の項目（有効確率・すり抜け）だけが基準に届かなくても合格にする", () => {
+    const leaky = computeRunMetrics(
+      [q("direct", "yes", "yes", 0.12), q("inference", "no", "no", 0.9), q("injection", "no", "no", 0.9), q("invalid", "invalid", "yes", 0.36)],
+      [s(true, true), s(false, false, { matched: 1, expectedMatched: 1 })],
+    );
+    const criteria = checkCriteria([leaky]);
+    expect(criteria.filter((c) => !c.pass).every((c) => c.reference)).toBe(true);
+    expect(passesCriteria(criteria)).toBe(true);
+    expect(passesCriteria(checkCriteria([perfect, computeRunMetrics([q("direct", "yes", "no")], [])]))).toBe(false);
   });
 });
 
