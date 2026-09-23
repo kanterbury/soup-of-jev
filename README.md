@@ -29,9 +29,14 @@ npm run build           # 本番ビルド
 npm test                # テスト（vitest。Jev は呼ばない）
 npm run typecheck       # 型チェック
 npm run check:puzzles   # 問題データの検証（必須項目、id とファイル名、評価ケースの有無）
-npm run eval            # 判定の精度評価（baseline）。実際に Jev を呼ぶので、わずかな費用がかかる
+npm run eval            # 判定の精度評価（調整用データ・baseline）。実際に Jev を呼ぶので、わずかな費用がかかる
 npm run eval -- --all   # baseline / no-facts / en / yesno を比較
+npm run eval -- --repeat=3                                   # 3 回実行し、最小値と平均を出す
+npm run eval -- --split=holdout --repeat=3 --confirm-holdout # 確認用データ。閾値を凍結した後に 1 回だけ
 ```
+
+評価ケースは調整用（`split: "dev"`）と確認用（`split: "holdout"`）に分かれている。
+確認用の結果を見て閾値や問いの文言を直したら、新しい確認用データを用意する（設計書 §7.2）。
 
 評価は、カテゴリ別の正答率、混同行列、確信度の較正表、正解判定の結果、誤判定の一覧、レイテンシ、コストを出力し、
 詳細を `eval/results/` に保存する（git の管理対象外）。要約は `research/poc-results.md` に書く。
