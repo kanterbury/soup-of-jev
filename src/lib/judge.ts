@@ -134,14 +134,16 @@ export type SolutionOptions = {
   lang: "ja" | "en";
   /** 要点を含んでいるとみなす確率 */
   pointThreshold: number;
-  /** 矛盾や相反する仮説を含まないとみなす確率。仮の値で、公開前評価の調整用データで決めて凍結する（設計書 §4.4） */
+  /** 矛盾や相反する仮説を含まないとみなす確率（設計書 §4.4） */
   consistencyThreshold: number;
 };
 
 export const DEFAULT_SOLUTION_OPTIONS: SolutionOptions = {
   lang: "ja",
   pointThreshold: 0.7,
-  consistencyThreshold: 0.7,
+  // 公開前評価の調整用データ（dev）で決めた値（2026-09-23）。誤りの混ざった回答の最大値 0.72 と、
+  // 正しい回答の最小値 0.92 の間に置いた。確認用データ（holdout）の評価の前に凍結する（設計書 §7.2）
+  consistencyThreshold: 0.8,
 };
 
 export type SolutionJudgement = {
