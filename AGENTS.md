@@ -18,6 +18,10 @@
 - **見た目**：`docs/app-design.md` §6.4 が仕様（配色・書体・判定の表示）。細部は `docs/design/mockups/`。
 - **Jev の性質と PoC の結果**：`research/what-is-jev.md`、`research/poc-results.md`。
 
+## 問題を増やすとき
+
+`.claude/skills/add-puzzles/`（スキル `add-puzzles`）の手順に従う：問題と評価ケースを書き、ユーザーに期待値をレビューしてもらい、holdout として一度だけ評価して記録する。
+
 ## 判定まわりを変えるとき
 
 - **真相はサーバーの中だけで扱う**：`truth`・`facts`・`keyPoints` を含む `Puzzle` はサーバー側で使い、クライアントには `toPublic()` を通した `PublicPuzzle` だけを渡す。`/api/ask` の応答は `verdict` だけにする（確信度も返さない。設計書 R2）。
