@@ -5,6 +5,7 @@
  *   npm run eval -- --all                      # 4 つの条件（baseline / no-facts / en / yesno）を比較
  *   npm run eval -- --repeat=3                 # 同じ条件で 3 回実行し、最小値と平均を出す
  *   npm run eval -- --puzzle=bar --variant=en
+ *   npm run eval -- --split=holdout --puzzle=exam,mirror --repeat=3 --confirm-holdout   # 問題を絞る（カンマ区切り）
  *   npm run eval -- --split=holdout --repeat=3 --confirm-holdout
  *                                              # 確認用（holdout）。閾値を凍結した後に 1 回だけ実行する
  *
@@ -74,7 +75,7 @@ const caseFiles: CaseFile[] = readdirSync("eval/cases")
   .filter((f) => f.endsWith(".json"))
   .map((f) => JSON.parse(readFileSync(path.join("eval/cases", f), "utf8")) as CaseFile)
   .filter((c) => c.split === split)
-  .filter((c) => !args.puzzle || c.puzzleId === args.puzzle);
+  .filter((c) => !args.puzzle || args.puzzle.split(",").includes(c.puzzleId));
 if (caseFiles.length === 0) throw new Error(`split=${split}${args.puzzle ? ` puzzle=${args.puzzle}` : ""} の評価ケースがありません`);
 
 const client = createJevClient();
