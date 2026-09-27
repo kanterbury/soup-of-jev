@@ -1,6 +1,8 @@
-import { GoldDivider, Logo, PrivacyNote } from "@/components/Ornaments";
+import { GitHubMark, GoldDivider, Logo, PrivacyNote } from "@/components/Ornaments";
 import { listPublicPuzzles } from "@/lib/puzzles";
 import { PuzzleCardStatus } from "./PuzzleCardStatus";
+
+const REPOSITORY_URL = "https://github.com/kanterbury/soup-of-jev";
 
 export default function Home() {
   const puzzles = listPublicPuzzles();
@@ -26,8 +28,18 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="mt-auto text-center">
+      <footer className="mt-auto flex flex-col items-center gap-1 text-center">
         <PrivacyNote />
+        <a
+          href={REPOSITORY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub でソースを見る"
+          title="GitHub でソースを見る"
+          className="inline-flex size-11 items-center justify-center text-white hover:text-white"
+        >
+          <GitHubMark className="size-5" />
+        </a>
       </footer>
     </div>
   );
