@@ -1,0 +1,2 @@
+# Prettier の既定（LF）に合わせ、どの OS でも改行を LF にする
+* text=auto eol=lf
