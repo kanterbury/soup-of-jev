@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import { LikeButton } from "@/components/LikeButton";
 import { ChevronLeft, Logo, PrivacyNote } from "@/components/Ornaments";
 import { TruthCard } from "@/components/TruthCard";
 import { VerdictLabel } from "@/components/VerdictLabel";
@@ -103,6 +104,7 @@ export function PlayView({ puzzle, number }: { puzzle: PublicPuzzle; number: num
       {progress === undefined ? null : finished && progress.truth ? (
         <div className="flex flex-col gap-10 px-4 py-8 sm:px-0 sm:py-6">
           <TruthCard title={puzzle.title} truth={progress.truth} solved={progress.status === "solved"}>
+            <LikeButton puzzleId={puzzle.id} />
             <Link href="/" className="btn-primary min-h-12 px-[26px]">
               次の謎を選ぶ
             </Link>

@@ -16,6 +16,8 @@ export type Progress = {
 const PREFIX = "soup-of-jev:v1:";
 const progressKey = (puzzleId: string) => `${PREFIX}progress:${puzzleId}`;
 const HOWTO_KEY = `${PREFIX}seen-howto`;
+// いいねを押したか（設計書 D8）。やり直し（clearProgress）では消さない
+const likedKey = (puzzleId: string) => `${PREFIX}liked:${puzzleId}`;
 
 /** 同じタブでの書き込みを購読者に知らせるイベント（storage イベントは別のタブでしか発火しない） */
 const CHANGE_EVENT = "soup-of-jev:progress-change";
@@ -74,6 +76,10 @@ export function markHowtoSeen() {
   write(HOWTO_KEY, "1");
 }
 
+export function setLiked(puzzleId: string, liked: boolean) {
+  write(likedKey(puzzleId), liked ? "1" : null);
+}
+
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange);
   window.addEventListener(CHANGE_EVENT, onChange);
@@ -113,5 +119,14 @@ export function useHowtoSeen(): boolean {
     subscribe,
     () => read(HOWTO_KEY) !== null,
     () => true,
+  );
+}
+
+/** いいねを押したか。サーバーでの描画中は undefined */
+export function useLiked(puzzleId: string): boolean | undefined {
+  return useSyncExternalStore(
+    subscribe,
+    () => read(likedKey(puzzleId)) !== null,
+    () => undefined,
   );
 }

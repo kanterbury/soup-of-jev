@@ -21,6 +21,7 @@ npm run dev                         # http://localhost:3000
 | `JEV_PROVIDER` | Jev の呼び出し経路。`direct`（TypeSafe 直接 API、既定）か `gateway`（Vercel AI Gateway）。`gateway` は、その経路で評価を回してから使う |
 | `TYPESAFE_API_KEY` | `direct` のときの鍵 |
 | `AI_GATEWAY_API_KEY` | `gateway` のときの鍵 |
+| `KV_REST_API_URL`、`KV_REST_API_TOKEN` | いいねの数の保存先（Upstash Redis）。Vercel Marketplace で追加すると入る。`UPSTASH_REDIS_REST_URL`／`_TOKEN` でもよい。空のときはメモリで数える（開発用。再起動で消える） |
 
 ## コマンド
 
@@ -50,8 +51,10 @@ npm run eval -- --split=holdout --repeat=3 --confirm-holdout # 確認用デー�
 | `POST /api/ask` | `puzzleId`、`question`（200 文字まで） | `verdict`（`yes` / `no` / `unknown` / `invalid`） |
 | `POST /api/solve` | `puzzleId`、`answer`（500 文字まで） | `solved`、`matched`、`total`、正解時のみ `truth` |
 | `POST /api/reveal` | `puzzleId` | `truth` |
+| `GET /api/likes` | なし | `counts`（問題 ID → いいねの数） |
+| `POST /api/likes` | `puzzleId`、`liked`（`true` で押す、`false` で取り消す） | 変えた後の `count` |
 
-Jev が混み合っている・タイムアウトしたときは 503、それ以外の失敗は 500 を返す。
+Jev が混み合っている・タイムアウトしたときは 503、それ以外の失敗（いいねの保存先の失敗を含む）は 500 を返す。
 
 ```sh
 curl -X POST localhost:3000/api/ask -H 'Content-Type: application/json' \
@@ -64,6 +67,7 @@ Vercel Hobby に、GitHub のリポジトリを取り込んで公開している
 
 1. Vercel で「Add New… → Project」からリポジトリを取り込む。Framework は Next.js。
 2. 「Environment Variables」に `JEV_PROVIDER=direct` と `TYPESAFE_API_KEY`（Sensitive）を設定する。変えたら再デプロイする。
+   いいねの保存先は、「Storage」（Marketplace）から Upstash Redis（無料枠）を追加してプロジェクトにつなぐ。`KV_REST_API_URL`・`KV_REST_API_TOKEN` が自動で入る。
 3. 「Firewall」にレート制限ルールを 1 つ作る：Request Path が `/api/` で始まるリクエストを、IP ごとに 60 秒あたり 60 回まで。
 4. TypeSafe には支出の上限・アラートがないので、請求額を定期的に確かめる。
 5. 独自ドメインは「Settings → Domains」で追加し、表示された CNAME を DNS に登録する。`soup-of-jev.kanterbury.com` は、`kanterbury.com` の DNS を管理している Route 53 に CNAME を登録している。
@@ -79,6 +83,7 @@ Vercel Hobby に、GitHub のリポジトリを取り込んで公開している
 - `src/components/` — 判定の表示（`VerdictLabel.tsx`）、真相の表示、飾り
 - `src/lib/jev/client.ts` — Jev の呼び出し（直接 API / Vercel AI Gateway を `JevClient` の裏で切り替える）
 - `src/lib/judge.ts` — 質問判定と正解判定
-- `src/lib/progress.ts` — 進行状況の保存（ブラウザの localStorage）
+- `src/lib/progress.ts` — 進行状況と、いいねを押したかの保存（ブラウザの localStorage）
+- `src/lib/likes.ts` — いいねの数の保存（Upstash Redis。なければメモリ）。ブラウザ側で数を持つのは `src/lib/likeCounts.ts`
 - `data/puzzles/` — 問題（`truth` / `facts` / `keyPoints` はサーバーの外に出さない）
 - `eval/cases/` — 評価ケース。否定疑問文の期待値は日本語の慣習に従う（「〜ではないのですか？」の内容が成り立てば `yes`）

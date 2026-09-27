@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Check } from "@/components/Ornaments";
-import { useProgress } from "@/lib/progress";
+import { Check, Heart } from "@/components/Ornaments";
+import { useLikeCounts } from "@/lib/likeCounts";
+import { useLiked, useProgress } from "@/lib/progress";
 
 /**
  * 問題カードの進行状況とボタン。進行状況は localStorage にあるので、この部分だけクライアントで描く。
@@ -58,11 +59,28 @@ export function PuzzleCardStatus({
   return (
     <>
       <div className="flex min-h-[26px] items-center justify-between gap-3">
-        <span className="font-label text-[13px] font-semibold tracking-[0.24em] text-gold-muted">No. {number}</span>
+        <div className="flex items-center gap-4">
+          <span className="font-label text-[13px] font-semibold tracking-[0.24em] text-gold-muted">No. {number}</span>
+          <LikeCount puzzleId={puzzleId} />
+        </div>
         {badge}
       </div>
       {children}
       <div className="mt-auto flex flex-col">{action}</div>
     </>
+  );
+}
+
+/** いいねの数（設計書 D8）。自分が押した問題はハートを塗る。取れなかったときは何も出さない */
+function LikeCount({ puzzleId }: { puzzleId: string }) {
+  const count = useLikeCounts()?.[puzzleId];
+  const liked = useLiked(puzzleId);
+  if (count === undefined) return null;
+  return (
+    <span className="inline-flex items-center gap-1 text-gold-muted">
+      <Heart className="size-3.5" filled={liked} />
+      <span className="sr-only">{liked ? "いいね済み・いいね" : "いいね"}</span>
+      <span className="font-label text-[13px] font-semibold tracking-[0.06em]">{count}</span>
+    </span>
   );
 }
