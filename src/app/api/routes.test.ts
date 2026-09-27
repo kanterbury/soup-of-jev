@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { JevUnavailableError, type JevAnswer, type JevClient } from "@/lib/jev/client";
-import { getPuzzle } from "@/lib/puzzles";
+import { MemoryLikeStore, type LikeStore } from "@/lib/likes";
+import { getPuzzle, listPublicPuzzles } from "@/lib/puzzles";
 import { POST as ask } from "./ask/route";
+import { GET as getLikes, POST as postLike } from "./likes/route";
 import { POST as reveal } from "./reveal/route";
 import { POST as solve } from "./solve/route";
 
@@ -9,6 +11,12 @@ const evaluate = vi.fn<JevClient["evaluate"]>();
 vi.mock("@/lib/jev/client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/jev/client")>()),
   createJevClient: (): JevClient => ({ name: "fake", evaluate }),
+}));
+
+let likeStore: LikeStore;
+vi.mock("@/lib/likes", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/likes")>()),
+  getLikeStore: () => likeStore,
 }));
 
 const post = (body: unknown) =>
@@ -125,5 +133,47 @@ describe("POST /api/reveal", () => {
   it("存在しない問題は 404", async () => {
     expect((await reveal(post({ puzzleId: "nope" }))).status).toBe(404);
     expect((await reveal(post({}))).status).toBe(404);
+  });
+});
+
+describe("/api/likes", () => {
+  beforeEach(() => {
+    likeStore = new MemoryLikeStore();
+  });
+
+  it("GET は全問題の数を返す（まだ押されていない問題は 0）", async () => {
+    await postLike(post({ puzzleId: "umigame", liked: true }));
+    const res = await getLikes();
+    expect(res.headers.get("Cache-Control")).toBe("no-store");
+    const { counts } = await res.json();
+    expect(Object.keys(counts).sort()).toEqual(listPublicPuzzles().map((p) => p.id).sort());
+    expect(counts.umigame).toBe(1);
+    expect(counts.bar).toBe(0);
+  });
+
+  it("POST で押すと増え、取り消すと減る。0 未満にはならない", async () => {
+    const like = async (liked: boolean) => (await (await postLike(post({ puzzleId: "umigame", liked }))).json()).count;
+    expect(await like(true)).toBe(1);
+    expect(await like(true)).toBe(2);
+    expect(await like(false)).toBe(1);
+    expect(await like(false)).toBe(0);
+    expect(await like(false)).toBe(0);
+  });
+
+  it("liked が真偽値でなければ 400、存在しない問題は 404", async () => {
+    expect((await postLike(post({ puzzleId: "umigame", liked: "true" }))).status).toBe(400);
+    expect((await postLike(post({ puzzleId: "umigame" }))).status).toBe(400);
+    expect((await postLike(post({ puzzleId: "nope", liked: true }))).status).toBe(404);
+  });
+
+  it("保存先の失敗は 500 で、原因を返さない", async () => {
+    likeStore = {
+      counts: () => Promise.reject(new Error("redis down")),
+      add: () => Promise.reject(new Error("redis down")),
+    };
+    const res = await postLike(post({ puzzleId: "umigame", liked: true }));
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "いいねの保存に失敗しました" });
+    expect((await getLikes()).status).toBe(500);
   });
 });

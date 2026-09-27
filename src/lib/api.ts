@@ -24,12 +24,13 @@ export const puzzleNotFound = () => Response.json({ error: "puzzle が見つか�
 /**
  * Jev の呼び出しなどで起きた失敗を応答にする（設計書 R6）。
  * 時間をおけば直りうる失敗は 503、それ以外は 500。原因はサーバーログにだけ残す。
+ * message は 500 のときの文言（いいねの API などで変える）。
  */
-export function errorResponse(e: unknown): Response {
+export function errorResponse(e: unknown, message = "判定に失敗しました"): Response {
   if (e instanceof JevUnavailableError) {
     console.warn(e);
     return Response.json({ error: "混み合っています。少し待ってからもう一度送ってください" }, { status: 503 });
   }
   console.error(e);
-  return Response.json({ error: "判定に失敗しました" }, { status: 500 });
+  return Response.json({ error: message }, { status: 500 });
 }
