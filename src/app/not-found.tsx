@@ -6,8 +6,12 @@ export default function NotFound() {
     <main className="flex min-h-dvh flex-col items-center justify-center gap-5 px-4 text-center">
       <Logo size="lg" />
       <GoldDivider width={280} />
-      <h1 className="m-0 font-display text-2xl font-extrabold text-ivory">この謎は見つかりません</h1>
-      <p className="m-0 text-sm text-rose">URL が間違っているか、問題が取り下げられた可能性があります。</p>
+      <h1 className="m-0 font-display text-2xl font-extrabold text-ivory">
+        この謎は見つかりません
+      </h1>
+      <p className="m-0 text-sm text-rose">
+        URL が間違っているか、問題が取り下げられた可能性があります。
+      </p>
       <Link href="/" className="btn-primary mt-2">
         問題一覧へ
       </Link>

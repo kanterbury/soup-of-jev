@@ -19,7 +19,14 @@ describe("track", () => {
 
   it("測定 ID があれば、イベント名と引数をそのまま送る", () => {
     vi.stubEnv("NEXT_PUBLIC_GA_MEASUREMENT_ID", "G-TEST");
-    track({ name: "puzzle_solved", params: { puzzle_id: "window", question_count: 5, attempt_count: 2 } });
-    expect(sendGAEvent).toHaveBeenCalledWith("event", "puzzle_solved", { puzzle_id: "window", question_count: 5, attempt_count: 2 });
+    track({
+      name: "puzzle_solved",
+      params: { puzzle_id: "window", question_count: 5, attempt_count: 2 },
+    });
+    expect(sendGAEvent).toHaveBeenCalledWith("event", "puzzle_solved", {
+      puzzle_id: "window",
+      question_count: 5,
+      attempt_count: 2,
+    });
   });
 });

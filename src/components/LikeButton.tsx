@@ -19,7 +19,8 @@ export function LikeButton({ puzzleId }: { puzzleId: string }) {
     setError(undefined);
     const error = await toggleLike(puzzleId, !liked);
     setError(error);
-    if (!error) track({ name: "like", params: { puzzle_id: puzzleId, liked: !liked } });
+    if (!error)
+      track({ name: "like", params: { puzzle_id: puzzleId, liked: !liked } });
     setSending(false);
   }
 
@@ -34,7 +35,11 @@ export function LikeButton({ puzzleId }: { puzzleId: string }) {
       >
         <Heart className="size-[18px]" filled={liked} />
         {liked ? "いいね済み" : "いいね"}
-        {count !== undefined && <span className="font-label text-base font-semibold text-ivory">{count}</span>}
+        {count !== undefined && (
+          <span className="font-label text-base font-semibold text-ivory">
+            {count}
+          </span>
+        )}
       </button>
       {error && (
         <p role="alert" className="m-0 text-[13px] text-rose">

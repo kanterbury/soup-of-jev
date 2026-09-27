@@ -13,7 +13,8 @@
   --color-rose-muted: #cdb7b2;
   --color-dim: #b89a95;
 
-  --font-display: "Shippori Mincho B1", "Yu Mincho", "Hiragino Mincho ProN", serif;
+  --font-display:
+    "Shippori Mincho B1", "Yu Mincho", "Hiragino Mincho ProN", serif;
   --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
   --font-label: "Cinzel", "Times New Roman", serif;
 }

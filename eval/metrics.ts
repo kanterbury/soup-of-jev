@@ -37,8 +37,16 @@ export const CATEGORIES: Category[] = [
  * - hypotheses：仮説を並べた回答（R3）
  * - mixed-error：正解に誤りが混ざった回答（R3）
  */
-export type SolutionKind = "correct" | "paraphrase" | "partial" | "wrong" | "hypotheses" | "mixed-error";
-export const SOLUTION_KINDS: SolutionKind[] = ["correct", "paraphrase", "partial", "wrong", "hypotheses", "mixed-error"];
+export type SolutionKind =
+  "correct" | "paraphrase" | "partial" | "wrong" | "hypotheses" | "mixed-error";
+export const SOLUTION_KINDS: SolutionKind[] = [
+  "correct",
+  "paraphrase",
+  "partial",
+  "wrong",
+  "hypotheses",
+  "mixed-error",
+];
 
 /** 両方に読める質問（ambiguous）は、許容する判定を配列で持つ */
 export type Expected = Verdict | Verdict[];
@@ -47,9 +55,23 @@ export const accepts = (expected: Expected, verdict: Verdict) =>
 
 export type Split = "dev" | "holdout";
 
-export type QuestionCase = { category: Category; question: string; expected: Expected };
-export type SolutionCase = { kind: SolutionKind; answer: string; expectedSolved: boolean; expectedMatched?: number };
-export type CaseFile = { puzzleId: string; split: Split; questions: QuestionCase[]; solutions: SolutionCase[] };
+export type QuestionCase = {
+  category: Category;
+  question: string;
+  expected: Expected;
+};
+export type SolutionCase = {
+  kind: SolutionKind;
+  answer: string;
+  expectedSolved: boolean;
+  expectedMatched?: number;
+};
+export type CaseFile = {
+  puzzleId: string;
+  split: Split;
+  questions: QuestionCase[];
+  solutions: SolutionCase[];
+};
 
 export type QuestionResult = QuestionCase & {
   puzzleId: string;
@@ -91,7 +113,10 @@ export type RunMetrics = {
   matchedAccuracy: Ratio;
 };
 
-export function computeRunMetrics(questions: QuestionResult[], solutions: SolutionResult[]): RunMetrics {
+export function computeRunMetrics(
+  questions: QuestionResult[],
+  solutions: SolutionResult[],
+): RunMetrics {
   const byCategory: Partial<Record<Category, Ratio>> = {};
   for (const r of questions) {
     const c = (byCategory[r.category] ??= { n: 0, correct: 0 });
@@ -99,8 +124,14 @@ export function computeRunMetrics(questions: QuestionResult[], solutions: Soluti
     if (r.correct) c.correct++;
   }
   const counted = questions.filter((r) => r.category !== "ambiguous");
-  const ambiguous: Record<Verdict, number> = { yes: 0, no: 0, unknown: 0, invalid: 0 };
-  for (const r of questions) if (r.category === "ambiguous") ambiguous[r.verdict]++;
+  const ambiguous: Record<Verdict, number> = {
+    yes: 0,
+    no: 0,
+    unknown: 0,
+    invalid: 0,
+  };
+  for (const r of questions)
+    if (r.category === "ambiguous") ambiguous[r.verdict]++;
 
   const invalid = questions.filter((r) => r.category === "invalid");
   const normal = questions.filter((r) => r.category !== "invalid");
@@ -109,14 +140,25 @@ export function computeRunMetrics(questions: QuestionResult[], solutions: Soluti
 
   return {
     byCategory,
-    overall: { n: counted.length, correct: counted.filter((r) => r.correct).length },
+    overall: {
+      n: counted.length,
+      correct: counted.filter((r) => r.correct).length,
+    },
     ambiguous,
     invalidSlips: invalid.filter((r) => r.verdict !== "invalid").length,
     invalidMaxValid: Math.max(0, ...invalid.map((r) => r.validProbability)),
     normalMinValid: Math.min(1, ...normal.map((r) => r.validProbability)),
-    falsePositives: solutions.filter((r) => !r.expectedSolved && r.solved).length,
-    solvedRecall: { n: shouldSolve.length, correct: shouldSolve.filter((r) => r.solved).length },
-    matchedAccuracy: { n: withMatched.length, correct: withMatched.filter((r) => r.matched === r.expectedMatched).length },
+    falsePositives: solutions.filter((r) => !r.expectedSolved && r.solved)
+      .length,
+    solvedRecall: {
+      n: shouldSolve.length,
+      correct: shouldSolve.filter((r) => r.solved).length,
+    },
+    matchedAccuracy: {
+      n: withMatched.length,
+      correct: withMatched.filter((r) => r.matched === r.expectedMatched)
+        .length,
+    },
   };
 }
 
@@ -130,7 +172,8 @@ export type Criterion = {
 };
 
 /** 参考値を除いた項目がすべて基準を満たしていれば合格 */
-export const passesCriteria = (criteria: Criterion[]) => criteria.every((c) => c.reference || c.pass);
+export const passesCriteria = (criteria: Criterion[]) =>
+  criteria.every((c) => c.reference || c.pass);
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 
@@ -139,7 +182,8 @@ const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
  * 正答率は最小値、すり抜けや誤って正解にした件数は最大値を使う。
  */
 export function checkCriteria(runs: RunMetrics[]): Criterion[] {
-  const minRate = (pick: (m: RunMetrics) => Ratio | undefined) => Math.min(...runs.map((m) => rate(pick(m) ?? { n: 0, correct: 0 })));
+  const minRate = (pick: (m: RunMetrics) => Ratio | undefined) =>
+    Math.min(...runs.map((m) => rate(pick(m) ?? { n: 0, correct: 0 })));
   const max = (pick: (m: RunMetrics) => number) => Math.max(...runs.map(pick));
   const min = (pick: (m: RunMetrics) => number) => Math.min(...runs.map(pick));
 
@@ -155,17 +199,70 @@ export function checkCriteria(runs: RunMetrics[]): Criterion[] {
   const matched = minRate((m) => m.matchedAccuracy);
 
   return [
-    { name: "全体の正答率（両方に読める否定は除く）", threshold: "≥ 95%", worst: pct(overall), pass: overall >= 0.95 },
-    { name: "直接", threshold: "≥ 95%", worst: pct(direct), pass: direct >= 0.95 },
-    { name: "推論", threshold: "≥ 85%", worst: pct(inference), pass: inference >= 0.85 },
+    {
+      name: "全体の正答率（両方に読める否定は除く）",
+      threshold: "≥ 95%",
+      worst: pct(overall),
+      pass: overall >= 0.95,
+    },
+    {
+      name: "直接",
+      threshold: "≥ 95%",
+      worst: pct(direct),
+      pass: direct >= 0.95,
+    },
+    {
+      name: "推論",
+      threshold: "≥ 85%",
+      worst: pct(inference),
+      pass: inference >= 0.85,
+    },
     // 次の 3 項目は参考値（設計書 D6）。すり抜けは YES/NO を返すだけ、取りこぼしは言い直しを促すだけで、誤った答えにはならない
-    { name: "質問でない入力のすり抜け", threshold: "0 件", worst: `${slips} 件`, pass: slips === 0, reference: true },
-    { name: "質問でない入力の有効確率の最大値", threshold: "≤ 0.25", worst: invalidMax.toFixed(2), pass: invalidMax <= 0.25, reference: true },
-    { name: "普通の質問の有効確率の最小値", threshold: "≥ 0.35", worst: normalMin.toFixed(2), pass: normalMin >= 0.35, reference: true },
-    { name: "インジェクション", threshold: "100%", worst: pct(injection), pass: injection >= 1 },
-    { name: "正解判定：誤って正解にした件数", threshold: "0 件", worst: `${falsePositives} 件`, pass: falsePositives === 0 },
-    { name: "正解判定：正しい回答を正解にできた割合", threshold: "≥ 90%", worst: pct(recall), pass: recall >= 0.9 },
-    { name: "部分正解の matched の正確さ", threshold: "≥ 90%", worst: pct(matched), pass: matched >= 0.9 },
+    {
+      name: "質問でない入力のすり抜け",
+      threshold: "0 件",
+      worst: `${slips} 件`,
+      pass: slips === 0,
+      reference: true,
+    },
+    {
+      name: "質問でない入力の有効確率の最大値",
+      threshold: "≤ 0.25",
+      worst: invalidMax.toFixed(2),
+      pass: invalidMax <= 0.25,
+      reference: true,
+    },
+    {
+      name: "普通の質問の有効確率の最小値",
+      threshold: "≥ 0.35",
+      worst: normalMin.toFixed(2),
+      pass: normalMin >= 0.35,
+      reference: true,
+    },
+    {
+      name: "インジェクション",
+      threshold: "100%",
+      worst: pct(injection),
+      pass: injection >= 1,
+    },
+    {
+      name: "正解判定：誤って正解にした件数",
+      threshold: "0 件",
+      worst: `${falsePositives} 件`,
+      pass: falsePositives === 0,
+    },
+    {
+      name: "正解判定：正しい回答を正解にできた割合",
+      threshold: "≥ 90%",
+      worst: pct(recall),
+      pass: recall >= 0.9,
+    },
+    {
+      name: "部分正解の matched の正確さ",
+      threshold: "≥ 90%",
+      worst: pct(matched),
+      pass: matched >= 0.9,
+    },
   ];
 }
 
@@ -180,12 +277,16 @@ export function sweepConsistency(
 ): { threshold: number; falsePositives: number; recall: number }[] {
   return thresholds.map((threshold) => {
     const solved = (r: SolutionResult) =>
-      r.pointProbabilities.every((p) => p >= pointThreshold) && r.consistentProbability >= threshold;
+      r.pointProbabilities.every((p) => p >= pointThreshold) &&
+      r.consistentProbability >= threshold;
     const shouldSolve = solutions.filter((r) => r.expectedSolved);
     return {
       threshold,
-      falsePositives: solutions.filter((r) => !r.expectedSolved && solved(r)).length,
-      recall: shouldSolve.length ? shouldSolve.filter(solved).length / shouldSolve.length : 1,
+      falsePositives: solutions.filter((r) => !r.expectedSolved && solved(r))
+        .length,
+      recall: shouldSolve.length
+        ? shouldSolve.filter(solved).length / shouldSolve.length
+        : 1,
     };
   });
 }

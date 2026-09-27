@@ -33,14 +33,22 @@ export function PuzzleCardStatus({
         未挑戦
       </span>
     );
-    action = <Link href={href} className="btn-primary">この謎に挑む</Link>;
+    action = (
+      <Link href={href} className="btn-primary">
+        この謎に挑む
+      </Link>
+    );
   } else if (progress.status === "playing") {
     badge = (
       <span className="inline-flex h-[26px] items-center border border-gold/70 px-2.5 text-xs font-bold tracking-[0.06em] text-gold">
         挑戦中・質問 {progress.log.length}
       </span>
     );
-    action = <Link href={href} className="btn-primary">続きから</Link>;
+    action = (
+      <Link href={href} className="btn-primary">
+        続きから
+      </Link>
+    );
   } else {
     badge =
       progress.status === "solved" ? (
@@ -53,14 +61,20 @@ export function PuzzleCardStatus({
           真相を確認済み
         </span>
       );
-    action = <Link href={href} className="btn-secondary">真相をもう一度見る</Link>;
+    action = (
+      <Link href={href} className="btn-secondary">
+        真相をもう一度見る
+      </Link>
+    );
   }
 
   return (
     <>
       <div className="flex min-h-[26px] items-center justify-between gap-3">
         <div className="flex items-center gap-4">
-          <span className="font-label text-[13px] font-semibold tracking-[0.24em] text-gold-muted">No. {number}</span>
+          <span className="font-label text-[13px] font-semibold tracking-[0.24em] text-gold-muted">
+            No. {number}
+          </span>
           <LikeCount puzzleId={puzzleId} />
         </div>
         {badge}
@@ -80,7 +94,9 @@ function LikeCount({ puzzleId }: { puzzleId: string }) {
     <span className="inline-flex items-center gap-1 text-gold-muted">
       <Heart className="size-3.5" filled={liked} />
       <span className="sr-only">{liked ? "いいね済み・いいね" : "いいね"}</span>
-      <span className="font-label text-[13px] font-semibold tracking-[0.06em]">{count}</span>
+      <span className="font-label text-[13px] font-semibold tracking-[0.06em]">
+        {count}
+      </span>
     </span>
   );
 }

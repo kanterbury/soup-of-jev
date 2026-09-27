@@ -1,14 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { LikeButton } from "@/components/LikeButton";
 import { ChevronLeft, Logo, PrivacyNote } from "@/components/Ornaments";
 import { TruthCard } from "@/components/TruthCard";
 import { VerdictLabel } from "@/components/VerdictLabel";
 import { track } from "@/lib/analytics";
 import type { Verdict } from "@/lib/judge";
-import { clearProgress, loadProgress, markHowtoSeen, saveProgress, useHowtoSeen, useProgress, type Progress } from "@/lib/progress";
+import {
+  clearProgress,
+  loadProgress,
+  markHowtoSeen,
+  saveProgress,
+  useHowtoSeen,
+  useProgress,
+  type Progress,
+} from "@/lib/progress";
 import type { PublicPuzzle } from "@/lib/puzzles";
 
 // サーバー側（src/app/api）の上限と合わせる
@@ -25,10 +41,18 @@ async function postJson<T>(url: string, body: unknown): Promise<ApiResult<T>> {
       body: JSON.stringify(body),
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) return { ok: false, error: typeof json.error === "string" ? json.error : "判定に失敗しました" };
+    if (!res.ok)
+      return {
+        ok: false,
+        error:
+          typeof json.error === "string" ? json.error : "判定に失敗しました",
+      };
     return { ok: true, data: json as T };
   } catch {
-    return { ok: false, error: "通信に失敗しました。接続を確かめてから、もう一度送ってください" };
+    return {
+      ok: false,
+      error: "通信に失敗しました。接続を確かめてから、もう一度送ってください",
+    };
   }
 }
 
@@ -37,7 +61,13 @@ function latest(puzzleId: string): Progress {
   return loadProgress(puzzleId) ?? { log: [], status: "playing" };
 }
 
-export function PlayView({ puzzle, number }: { puzzle: PublicPuzzle; number: number }) {
+export function PlayView({
+  puzzle,
+  number,
+}: {
+  puzzle: PublicPuzzle;
+  number: number;
+}) {
   const progress = useProgress(puzzle.id);
   const howtoSeen = useHowtoSeen();
   const [showLog, setShowLog] = useState(false);
@@ -47,13 +77,16 @@ export function PlayView({ puzzle, number }: { puzzle: PublicPuzzle; number: num
   const [revealing, setRevealing] = useState(false);
 
   const log = progress?.log ?? [];
-  const finished = progress?.status === "solved" || progress?.status === "gave-up";
+  const finished =
+    progress?.status === "solved" || progress?.status === "gave-up";
 
   async function reveal() {
     if (revealing) return;
     setRevealing(true);
     setRevealError(undefined);
-    const result = await postJson<{ truth: string }>("/api/reveal", { puzzleId: puzzle.id });
+    const result = await postJson<{ truth: string }>("/api/reveal", {
+      puzzleId: puzzle.id,
+    });
     setRevealing(false);
     if (!result.ok) {
       setRevealError(result.error);
@@ -61,8 +94,15 @@ export function PlayView({ puzzle, number }: { puzzle: PublicPuzzle; number: num
     }
     revealDialog.current?.close();
     const current = latest(puzzle.id);
-    saveProgress(puzzle.id, { ...current, status: "gave-up", truth: result.data.truth });
-    track({ name: "reveal", params: { puzzle_id: puzzle.id, question_count: current.log.length } });
+    saveProgress(puzzle.id, {
+      ...current,
+      status: "gave-up",
+      truth: result.data.truth,
+    });
+    track({
+      name: "reveal",
+      params: { puzzle_id: puzzle.id, question_count: current.log.length },
+    });
     window.scrollTo({ top: 0 });
   }
 
@@ -76,14 +116,20 @@ export function PlayView({ puzzle, number }: { puzzle: PublicPuzzle; number: num
 
   const header = (
     <header className="flex items-center justify-between gap-2 border-b border-gold/30 py-2.5 pr-3 pl-1.5 sm:gap-6 sm:px-0 sm:pt-0 sm:pb-[18px]">
-      <Link href="/" aria-label="問題一覧に戻る" className="inline-flex h-11 min-w-11 items-center justify-center gap-2 text-sm tracking-[0.06em] no-underline sm:justify-start">
+      <Link
+        href="/"
+        aria-label="問題一覧に戻る"
+        className="inline-flex h-11 min-w-11 items-center justify-center gap-2 text-sm tracking-[0.06em] no-underline sm:justify-start"
+      >
         <ChevronLeft className="size-5 sm:size-4" />
         <span className="hidden sm:inline">問題一覧</span>
       </Link>
       <div className="hidden sm:block">
         <Logo />
       </div>
-      <h1 className="m-0 grow font-display text-lg font-extrabold text-ivory sm:hidden">{puzzle.title}</h1>
+      <h1 className="m-0 grow font-display text-lg font-extrabold text-ivory sm:hidden">
+        {puzzle.title}
+      </h1>
       {progress !== undefined && !finished ? (
         <button
           type="button"
@@ -107,17 +153,30 @@ export function PlayView({ puzzle, number }: { puzzle: PublicPuzzle; number: num
 
       {progress === undefined ? null : finished && progress.truth ? (
         <div className="flex flex-col gap-10 px-4 py-8 sm:px-0 sm:py-6">
-          <TruthCard title={puzzle.title} truth={progress.truth} solved={progress.status === "solved"}>
+          <TruthCard
+            title={puzzle.title}
+            truth={progress.truth}
+            solved={progress.status === "solved"}
+          >
             <LikeButton puzzleId={puzzle.id} />
             <Link href="/" className="btn-primary min-h-12 px-[26px]">
               次の謎を選ぶ
             </Link>
             {log.length > 0 && (
-              <button type="button" className="btn-secondary min-h-12 px-[22px]" onClick={() => setShowLog((v) => !v)} aria-expanded={showLog}>
+              <button
+                type="button"
+                className="btn-secondary min-h-12 px-[22px]"
+                onClick={() => setShowLog((v) => !v)}
+                aria-expanded={showLog}
+              >
                 {showLog ? "質問の記録を閉じる" : "質問の記録を見る"}
               </button>
             )}
-            <button type="button" className="btn-secondary min-h-12 px-[22px]" onClick={() => restartDialog.current?.showModal()}>
+            <button
+              type="button"
+              className="btn-secondary min-h-12 px-[22px]"
+              onClick={() => restartDialog.current?.showModal()}
+            >
               やり直す
             </button>
           </TruthCard>
@@ -179,8 +238,12 @@ function PlayingView({
     <div className="flex grow flex-col gap-0 lg:grid lg:grid-cols-[500px_minmax(0,1fr)] lg:gap-10">
       <aside className="flex flex-col gap-4 px-3.5 pt-3.5 sm:gap-6 sm:px-0 sm:pt-0">
         <section className="frame-double flex flex-col gap-2 px-4 pt-4 pb-3 sm:gap-3.5 sm:px-7 sm:pt-7 sm:pb-[26px]">
-          <div className="label-caps hidden text-gold-muted sm:block">THE MYSTERY · No. {number}</div>
-          <h2 className="m-0 hidden font-display text-[30px] leading-[1.3] font-extrabold text-ivory sm:block">{puzzle.title}</h2>
+          <div className="label-caps hidden text-gold-muted sm:block">
+            THE MYSTERY · No. {number}
+          </div>
+          <h2 className="m-0 hidden font-display text-[30px] leading-[1.3] font-extrabold text-ivory sm:block">
+            {puzzle.title}
+          </h2>
           <p
             className={`m-0 font-display text-[14.5px] leading-[1.85] font-semibold text-ivory sm:line-clamp-none sm:text-[17px] sm:leading-loose ${
               problemExpanded ? "" : "line-clamp-3"
@@ -207,9 +270,18 @@ function PlayingView({
         >
           {answerOpen ? "回答欄を閉じる" : "真相がわかったら回答する"}
         </button>
-        <div id="answer-panel" className={answerOpen ? "flex flex-col gap-3" : "hidden sm:flex sm:flex-col"}>
+        <div
+          id="answer-panel"
+          className={
+            answerOpen ? "flex flex-col gap-3" : "hidden sm:flex sm:flex-col"
+          }
+        >
           <AnswerPanel puzzleId={puzzle.id} />
-          <button type="button" className="btn-secondary sm:hidden" onClick={onRevealClick}>
+          <button
+            type="button"
+            className="btn-secondary sm:hidden"
+            onClick={onRevealClick}
+          >
             真相を見る
           </button>
         </div>
@@ -223,9 +295,14 @@ function PlayingView({
 function QuestionsHeading({ count }: { count: number }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <h2 className="label-caps m-0 text-gold sm:text-[15px] sm:tracking-[0.28em]">QUESTIONS</h2>
+      <h2 className="label-caps m-0 text-gold sm:text-[15px] sm:tracking-[0.28em]">
+        QUESTIONS
+      </h2>
       <span className="text-xs text-dim sm:text-[13px]">
-        質問 <span className="font-label text-sm text-ivory sm:text-base">{count}</span>
+        質問{" "}
+        <span className="font-label text-sm text-ivory sm:text-base">
+          {count}
+        </span>
       </span>
     </div>
   );
@@ -236,12 +313,17 @@ function QuestionLog({ log }: { log: Progress["log"] }) {
   const count = useRef(log.length);
   // 質問が増えたら、最新の質問が見えるようにする
   useEffect(() => {
-    if (log.length > count.current) endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    if (log.length > count.current)
+      endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
     count.current = log.length;
   }, [log.length]);
 
   if (log.length === 0) {
-    return <p className="m-0 border-t border-gold/25 py-6 text-center text-sm text-dim">まだ質問はありません。</p>;
+    return (
+      <p className="m-0 border-t border-gold/25 py-6 text-center text-sm text-dim">
+        まだ質問はありません。
+      </p>
+    );
   }
   return (
     <ol className="m-0 flex list-none flex-col border-t border-gold/25 p-0">
@@ -256,7 +338,9 @@ function QuestionLog({ log }: { log: Progress["log"] }) {
           >
             Q.{i + 1}
           </span>
-          <span className={`text-[14.5px] leading-[1.55] break-words sm:text-base sm:leading-[1.6] ${verdict === "invalid" ? "text-dim" : "text-ivory"}`}>
+          <span
+            className={`text-[14.5px] leading-[1.55] break-words sm:text-base sm:leading-[1.6] ${verdict === "invalid" ? "text-dim" : "text-ivory"}`}
+          >
             {question}
           </span>
           <VerdictLabel verdict={verdict} />
@@ -266,20 +350,32 @@ function QuestionLog({ log }: { log: Progress["log"] }) {
   );
 }
 
-function QuestionsPanel({ puzzleId, log, howtoSeen }: { puzzleId: string; log: Progress["log"]; howtoSeen: boolean }) {
+function QuestionsPanel({
+  puzzleId,
+  log,
+  howtoSeen,
+}: {
+  puzzleId: string;
+  log: Progress["log"];
+  howtoSeen: boolean;
+}) {
   const [question, setQuestion] = useState("");
   const [asking, setAsking] = useState(false);
   const [error, setError] = useState<string>();
   const inputRef = useRef<HTMLInputElement>(null);
   const trimmed = question.trim();
-  const canSend = !asking && trimmed.length > 0 && trimmed.length <= MAX_QUESTION_LENGTH;
+  const canSend =
+    !asking && trimmed.length > 0 && trimmed.length <= MAX_QUESTION_LENGTH;
 
   async function ask(e: FormEvent) {
     e.preventDefault();
     if (!canSend) return;
     setAsking(true);
     setError(undefined);
-    const result = await postJson<{ verdict: Verdict }>("/api/ask", { puzzleId, question: trimmed });
+    const result = await postJson<{ verdict: Verdict }>("/api/ask", {
+      puzzleId,
+      question: trimmed,
+    });
     setAsking(false);
     if (!result.ok) {
       // 入力は消さずに残し、そのまま送り直せるようにする
@@ -287,8 +383,21 @@ function QuestionsPanel({ puzzleId, log, howtoSeen }: { puzzleId: string; log: P
       return;
     }
     const current = latest(puzzleId);
-    saveProgress(puzzleId, { ...current, log: [...current.log, { question: trimmed, verdict: result.data.verdict }] });
-    track({ name: "ask", params: { puzzle_id: puzzleId, verdict: result.data.verdict, question_number: current.log.length + 1 } });
+    saveProgress(puzzleId, {
+      ...current,
+      log: [
+        ...current.log,
+        { question: trimmed, verdict: result.data.verdict },
+      ],
+    });
+    track({
+      name: "ask",
+      params: {
+        puzzle_id: puzzleId,
+        verdict: result.data.verdict,
+        question_number: current.log.length + 1,
+      },
+    });
     setQuestion("");
     inputRef.current?.focus();
   }
@@ -303,11 +412,20 @@ function QuestionsPanel({ puzzleId, log, howtoSeen }: { puzzleId: string; log: P
         <div className="mx-3.5 flex flex-col gap-3 border border-gold/45 bg-[rgb(26_3_9/0.6)] px-5 py-4 sm:mx-0">
           <div className="label-caps text-gold">HOW TO PLAY</div>
           <ul className="m-0 flex list-disc flex-col gap-1.5 pl-5 text-sm leading-relaxed text-rose">
-            <li>YES か NO で答えられる質問をして、真相を推理してください。AI が「YES／NO／どちらともいえない」で答えます。</li>
-            <li>「〜ではないのですか？」のような聞き方は答えがぶれやすいので、「〜ですか？」と肯定の形で聞いてください。</li>
+            <li>
+              YES か NO で答えられる質問をして、真相を推理してください。AI
+              が「YES／NO／どちらともいえない」で答えます。
+            </li>
+            <li>
+              「〜ではないのですか？」のような聞き方は答えがぶれやすいので、「〜ですか？」と肯定の形で聞いてください。
+            </li>
             <li>真相がわかったら、回答欄に書いて送ってください。</li>
           </ul>
-          <button type="button" className="btn-secondary self-end text-sm" onClick={markHowtoSeen}>
+          <button
+            type="button"
+            className="btn-secondary self-end text-sm"
+            onClick={markHowtoSeen}
+          >
             はじめる
           </button>
         </div>
@@ -321,8 +439,12 @@ function QuestionsPanel({ puzzleId, log, howtoSeen }: { puzzleId: string; log: P
         onSubmit={ask}
         className="sticky bottom-0 flex flex-col gap-2.5 border-t border-gold/50 bg-[rgb(26_3_9/0.92)] px-3 pt-3 pb-5 sm:static sm:border sm:bg-[rgb(26_3_9/0.7)] sm:px-5 sm:py-[18px]"
       >
-        <label htmlFor="question" className="sr-only text-[13px] text-rose-muted sm:not-sr-only">
-          YES か NO で答えられる質問をどうぞ。「〜ではないのですか？」より、肯定形で聞くと答えがぶれにくくなります。
+        <label
+          htmlFor="question"
+          className="sr-only text-[13px] text-rose-muted sm:not-sr-only"
+        >
+          YES か NO
+          で答えられる質問をどうぞ。「〜ではないのですか？」より、肯定形で聞くと答えがぶれにくくなります。
         </label>
         <div className="flex gap-2 sm:gap-3">
           <input
@@ -337,7 +459,11 @@ function QuestionsPanel({ puzzleId, log, howtoSeen }: { puzzleId: string; log: P
             autoComplete="off"
             className="field h-12 min-w-0 grow px-3.5 text-base sm:px-4"
           />
-          <button type="submit" disabled={!canSend} className="btn-primary min-h-12 px-[18px] tracking-[0.1em] sm:px-[26px]">
+          <button
+            type="submit"
+            disabled={!canSend}
+            className="btn-primary min-h-12 px-[18px] tracking-[0.1em] sm:px-[26px]"
+          >
             {asking ? "判定中…" : "問う"}
           </button>
         </div>
@@ -365,7 +491,8 @@ function AnswerPanel({ puzzleId }: { puzzleId: string }) {
   // 回答を送った回数（計測用。保存しないので、再読み込みで 0 に戻る）
   const attempts = useRef(0);
   const trimmed = answer.trim();
-  const canSend = !solving && trimmed.length > 0 && trimmed.length <= MAX_ANSWER_LENGTH;
+  const canSend =
+    !solving && trimmed.length > 0 && trimmed.length <= MAX_ANSWER_LENGTH;
 
   async function solve(e: FormEvent) {
     e.preventDefault();
@@ -373,7 +500,12 @@ function AnswerPanel({ puzzleId }: { puzzleId: string }) {
     setSolving(true);
     setError(undefined);
     setResult(undefined);
-    const res = await postJson<{ solved: boolean; matched: number; total: number; truth?: string }>("/api/solve", {
+    const res = await postJson<{
+      solved: boolean;
+      matched: number;
+      total: number;
+      truth?: string;
+    }>("/api/solve", {
       puzzleId,
       answer: trimmed,
     });
@@ -385,10 +517,30 @@ function AnswerPanel({ puzzleId }: { puzzleId: string }) {
     attempts.current += 1;
     const current = latest(puzzleId);
     const { solved, matched, total } = res.data;
-    track({ name: "solve_attempt", params: { puzzle_id: puzzleId, solved, matched, total, question_count: current.log.length } });
+    track({
+      name: "solve_attempt",
+      params: {
+        puzzle_id: puzzleId,
+        solved,
+        matched,
+        total,
+        question_count: current.log.length,
+      },
+    });
     if (solved && res.data.truth) {
-      track({ name: "puzzle_solved", params: { puzzle_id: puzzleId, question_count: current.log.length, attempt_count: attempts.current } });
-      saveProgress(puzzleId, { ...current, status: "solved", truth: res.data.truth });
+      track({
+        name: "puzzle_solved",
+        params: {
+          puzzle_id: puzzleId,
+          question_count: current.log.length,
+          attempt_count: attempts.current,
+        },
+      });
+      saveProgress(puzzleId, {
+        ...current,
+        status: "solved",
+        truth: res.data.truth,
+      });
       window.scrollTo({ top: 0 });
       return;
     }
@@ -396,7 +548,10 @@ function AnswerPanel({ puzzleId }: { puzzleId: string }) {
   }
 
   return (
-    <form onSubmit={solve} className="flex flex-col gap-3 border border-gold/35 bg-[rgb(26_3_9/0.45)] px-4 py-4 sm:px-6 sm:py-[22px]">
+    <form
+      onSubmit={solve}
+      className="flex flex-col gap-3 border border-gold/35 bg-[rgb(26_3_9/0.45)] px-4 py-4 sm:px-6 sm:py-[22px]"
+    >
       <label htmlFor="answer" className="label-caps text-gold">
         YOUR ANSWER
       </label>
@@ -413,17 +568,27 @@ function AnswerPanel({ puzzleId }: { puzzleId: string }) {
         <div className="text-sm text-rose" role="status">
           {result && (
             <>
-              {result.total} つの要点のうち <strong className="font-label text-lg text-gold">{result.matched}</strong> つに触れています
+              {result.total} つの要点のうち{" "}
+              <strong className="font-label text-lg text-gold">
+                {result.matched}
+              </strong>{" "}
+              つに触れています
             </>
           )}
           {error && <span role="alert">{error}</span>}
           {!result && !error && (
-            <span className={`font-label text-xs tracking-[0.06em] ${trimmed.length > MAX_ANSWER_LENGTH ? "text-gold-light" : "text-dim"}`}>
+            <span
+              className={`font-label text-xs tracking-[0.06em] ${trimmed.length > MAX_ANSWER_LENGTH ? "text-gold-light" : "text-dim"}`}
+            >
               {trimmed.length} / {MAX_ANSWER_LENGTH}
             </span>
           )}
         </div>
-        <button type="submit" disabled={!canSend} className="btn-primary ml-auto">
+        <button
+          type="submit"
+          disabled={!canSend}
+          className="btn-primary ml-auto"
+        >
           {solving ? "判定中…" : "回答する"}
         </button>
       </div>
@@ -458,10 +623,19 @@ function ConfirmDialog({
         </p>
       )}
       <div className="mt-6 flex justify-end gap-3">
-        <button type="button" className="btn-secondary" onClick={() => dialogRef.current?.close()}>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => dialogRef.current?.close()}
+        >
           やめる
         </button>
-        <button type="button" className="btn-primary" disabled={busy} onClick={onConfirm}>
+        <button
+          type="button"
+          className="btn-primary"
+          disabled={busy}
+          onClick={onConfirm}
+        >
           {confirmLabel}
         </button>
       </div>
@@ -471,5 +645,6 @@ function ConfirmDialog({
 
 /** 日本語入力の変換を確定する Enter で送信しないようにする */
 function preventImeSubmit(e: KeyboardEvent<HTMLInputElement>) {
-  if (e.key === "Enter" && (e.nativeEvent.isComposing || e.keyCode === 229)) e.preventDefault();
+  if (e.key === "Enter" && (e.nativeEvent.isComposing || e.keyCode === 229))
+    e.preventDefault();
 }

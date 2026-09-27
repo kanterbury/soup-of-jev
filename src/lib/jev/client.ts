@@ -1,15 +1,33 @@
-import { APICallError, experimental_evaluate as evaluate, RetryError } from "ai";
+import {
+  APICallError,
+  experimental_evaluate as evaluate,
+  RetryError,
+} from "ai";
 
 // 質問と回答の型は AI SDK の evaluate API の語彙（choice / score / boolean）に揃える。
 // 直接 API では boolean を "noul" と呼ぶので、DirectJevClient 側で変換する。
 export type JevQuestion =
   | { type: "choice"; instructions: string; criteria: Record<string, string> }
   | { type: "score"; instructions: string; criteria: string[] }
-  | { type: "boolean"; instructions: string; criteria?: { true: string; false: string } };
+  | {
+      type: "boolean";
+      instructions: string;
+      criteria?: { true: string; false: string };
+    };
 
 export type JevAnswer =
-  | { type: "choice"; choice: string; probabilities?: Record<string, number>; confidence?: number }
-  | { type: "score"; score: number; probabilities?: Record<string, number>; confidence?: number }
+  | {
+      type: "choice";
+      choice: string;
+      probabilities?: Record<string, number>;
+      confidence?: number;
+    }
+  | {
+      type: "score";
+      score: number;
+      probabilities?: Record<string, number>;
+      confidence?: number;
+    }
   | { type: "boolean"; probability: number };
 
 export type JevState = string | Record<string, unknown> | unknown[];
@@ -22,7 +40,10 @@ export type JevResult = {
 
 export interface JevClient {
   readonly name: string;
-  evaluate(state: JevState, questions: Record<string, JevQuestion>): Promise<JevResult>;
+  evaluate(
+    state: JevState,
+    questions: Record<string, JevQuestion>,
+  ): Promise<JevResult>;
 }
 
 /** 評価に使ったモデル。変えるときは評価をやり直す（設計書 R4） */
@@ -44,14 +65,19 @@ export class JevUnavailableError extends Error {
   }
 }
 
-const isBusyStatus = (status: number | undefined) => status === 429 || status === 529;
-const isAbort = (e: unknown) => e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
+const isBusyStatus = (status: number | undefined) =>
+  status === 429 || status === 529;
+const isAbort = (e: unknown) =>
+  e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
 
 /** Vercel AI Gateway 経由（AI_GATEWAY_API_KEY）。本番で使う前に、この経路で評価を回すこと（設計書 Q6）。 */
 export class GatewayJevClient implements JevClient {
   readonly name = "gateway:typesafe-ai/jev";
 
-  async evaluate(state: JevState, questions: Record<string, JevQuestion>): Promise<JevResult> {
+  async evaluate(
+    state: JevState,
+    questions: Record<string, JevQuestion>,
+  ): Promise<JevResult> {
     const startedAt = performance.now();
     let result;
     try {
@@ -63,19 +89,29 @@ export class GatewayJevClient implements JevClient {
       });
     } catch (e) {
       const last = RetryError.isInstance(e) ? e.lastError : e;
-      if (isAbort(last) || (APICallError.isInstance(last) && (isBusyStatus(last.statusCode) || last.statusCode === undefined))) {
-        throw new JevUnavailableError("Jev（Gateway）が応答しません", { cause: e });
+      if (
+        isAbort(last) ||
+        (APICallError.isInstance(last) &&
+          (isBusyStatus(last.statusCode) || last.statusCode === undefined))
+      ) {
+        throw new JevUnavailableError("Jev（Gateway）が応答しません", {
+          cause: e,
+        });
       }
       throw e;
     }
     const latencyMs = performance.now() - startedAt;
 
     const confidence = result.providerMetadata?.typesafe?.confidence as
-      | Record<string, number>
-      | undefined;
+      Record<string, number> | undefined;
     const answers: Record<string, JevAnswer> = {};
-    for (const [id, answer] of Object.entries(result.answers as Record<string, JevAnswer>)) {
-      answers[id] = answer.type === "boolean" ? answer : { ...answer, confidence: confidence?.[id] };
+    for (const [id, answer] of Object.entries(
+      result.answers as Record<string, JevAnswer>,
+    )) {
+      answers[id] =
+        answer.type === "boolean"
+          ? answer
+          : { ...answer, confidence: confidence?.[id] };
     }
     return { answers, inputTokens: result.usage.inputTokens, latencyMs };
   }
@@ -96,19 +132,28 @@ export class DirectJevClient implements JevClient {
 
   constructor(private readonly apiKey: string) {}
 
-  async evaluate(state: JevState, questions: Record<string, JevQuestion>): Promise<JevResult> {
+  async evaluate(
+    state: JevState,
+    questions: Record<string, JevQuestion>,
+  ): Promise<JevResult> {
     const body = {
       model: JEV_MODEL,
       state,
       questions: Object.fromEntries(
-        Object.entries(questions).map(([id, q]) => [id, q.type === "boolean" ? { ...q, type: "noul" } : q]),
+        Object.entries(questions).map(([id, q]) => [
+          id,
+          q.type === "boolean" ? { ...q, type: "noul" } : q,
+        ]),
       ),
     };
 
     const startedAt = performance.now();
     const res = await fetchWithRetry("https://api.typesafe.ai/v1/systemone", {
       method: "POST",
-      headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(body),
     });
     const latencyMs = performance.now() - startedAt;
@@ -122,10 +167,22 @@ export class DirectJevClient implements JevClient {
     };
     const answers: Record<string, JevAnswer> = {};
     for (const [id, a] of Object.entries(json.answers)) {
-      if (a.type === "noul") answers[id] = { type: "boolean", probability: a.noul ?? 0 };
+      if (a.type === "noul")
+        answers[id] = { type: "boolean", probability: a.noul ?? 0 };
       else if (a.type === "choice")
-        answers[id] = { type: "choice", choice: a.choice ?? "", probabilities: a.probabilities, confidence: a.confidence };
-      else answers[id] = { type: "score", score: a.score ?? 0, probabilities: a.probabilities, confidence: a.confidence };
+        answers[id] = {
+          type: "choice",
+          choice: a.choice ?? "",
+          probabilities: a.probabilities,
+          confidence: a.confidence,
+        };
+      else
+        answers[id] = {
+          type: "score",
+          score: a.score ?? 0,
+          probabilities: a.probabilities,
+          confidence: a.confidence,
+        };
     }
     return { answers, inputTokens: json.usage?.input_tokens, latencyMs };
   }
@@ -133,15 +190,24 @@ export class DirectJevClient implements JevClient {
 
 // 429（レート制限）/ 529（過負荷）は指数バックオフで再試行する（公式推奨）。
 // 待ち時間の合計が RETRY_BUDGET_MS を超えるなら、再試行せずに諦める。
-async function fetchWithRetry(url: string, init: RequestInit): Promise<Response> {
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+): Promise<Response> {
   let waitedMs = 0;
   for (let attempt = 0; ; attempt++) {
     let res: Response;
     try {
-      res = await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+      res = await fetch(url, {
+        ...init,
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      });
     } catch (e) {
       // タイムアウト、または DNS・接続断などの通信エラー
-      throw new JevUnavailableError(isAbort(e) ? "Jev がタイムアウトしました" : "Jev に接続できません", { cause: e });
+      throw new JevUnavailableError(
+        isAbort(e) ? "Jev がタイムアウトしました" : "Jev に接続できません",
+        { cause: e },
+      );
     }
     if (!isBusyStatus(res.status)) return res;
 
@@ -158,12 +224,20 @@ async function fetchWithRetry(url: string, init: RequestInit): Promise<Response>
 export function createJevClient(): JevClient {
   const provider = process.env.JEV_PROVIDER ?? "direct";
   if (provider === "direct") {
-    if (!process.env.TYPESAFE_API_KEY) throw new Error("TYPESAFE_API_KEY を設定してください（.env.local.example を参照）");
+    if (!process.env.TYPESAFE_API_KEY)
+      throw new Error(
+        "TYPESAFE_API_KEY を設定してください（.env.local.example を参照）",
+      );
     return new DirectJevClient(process.env.TYPESAFE_API_KEY);
   }
   if (provider === "gateway") {
-    if (!process.env.AI_GATEWAY_API_KEY) throw new Error("AI_GATEWAY_API_KEY を設定してください（.env.local.example を参照）");
+    if (!process.env.AI_GATEWAY_API_KEY)
+      throw new Error(
+        "AI_GATEWAY_API_KEY を設定してください（.env.local.example を参照）",
+      );
     return new GatewayJevClient();
   }
-  throw new Error(`JEV_PROVIDER は direct か gateway を指定してください（現在: ${provider}）`);
+  throw new Error(
+    `JEV_PROVIDER は direct か gateway を指定してください（現在: ${provider}）`,
+  );
 }

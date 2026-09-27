@@ -7,13 +7,13 @@
 
 ## ファイル
 
-| ファイル | 画面 | 実装での対応 |
-|---|---|---|
-| `mockups/Main.dc.html` | スタイル見本（配色・書体・判定の表示・ボタン） | デザイントークン（`src/app/globals.css` の `@theme`） |
-| `mockups/List.dc.html` | 問題一覧（PC, 1280×900） | `/`（`src/app/page.tsx`） |
-| `mockups/Play.dc.html` | プレイ画面（PC, 1440×960） | `/puzzles/[id]`（`src/app/puzzles/[id]/PlayView.tsx`） |
-| `mockups/PlayPhone.dc.html` | プレイ画面（スマホ, 390×844） | 同上のスマホ幅での表示 |
-| `mockups/Reveal.dc.html` | 真相の表示（正解したとき） | プレイ画面の中の、正解後・「真相を見る」後の表示 |
+| ファイル                    | 画面                                           | 実装での対応                                           |
+| --------------------------- | ---------------------------------------------- | ------------------------------------------------------ |
+| `mockups/Main.dc.html`      | スタイル見本（配色・書体・判定の表示・ボタン） | デザイントークン（`src/app/globals.css` の `@theme`）  |
+| `mockups/List.dc.html`      | 問題一覧（PC, 1280×900）                       | `/`（`src/app/page.tsx`）                              |
+| `mockups/Play.dc.html`      | プレイ画面（PC, 1440×960）                     | `/puzzles/[id]`（`src/app/puzzles/[id]/PlayView.tsx`） |
+| `mockups/PlayPhone.dc.html` | プレイ画面（スマホ, 390×844）                  | 同上のスマホ幅での表示                                 |
+| `mockups/Reveal.dc.html`    | 真相の表示（正解したとき）                     | プレイ画面の中の、正解後・「真相を見る」後の表示       |
 
 ## 読み方の注意
 

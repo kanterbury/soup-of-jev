@@ -5,10 +5,13 @@ import type { Puzzle } from "./puzzles";
 export type Verdict = "yes" | "no" | "unknown" | "invalid";
 
 /** サーバー側だけで持つ判定。irrelevant（無関係）と uncertain（確信度が低い）を区別する（設計書 Q3） */
-export type InternalVerdict = "yes" | "no" | "irrelevant" | "uncertain" | "invalid";
+export type InternalVerdict =
+  "yes" | "no" | "irrelevant" | "uncertain" | "invalid";
 
 export function toPublicVerdict(verdict: InternalVerdict): Verdict {
-  return verdict === "irrelevant" || verdict === "uncertain" ? "unknown" : verdict;
+  return verdict === "irrelevant" || verdict === "uncertain"
+    ? "unknown"
+    : verdict;
 }
 
 export type JudgeOptions = {
@@ -48,7 +51,8 @@ export type QuestionJudgement = {
 
 const TEMPLATES = {
   ja: {
-    answer: "真相（truth と facts）だけを根拠に、プレイヤーの質問（playerQuestion）の内容が物語の中で成り立つかを判定してください。",
+    answer:
+      "真相（truth と facts）だけを根拠に、プレイヤーの質問（playerQuestion）の内容が物語の中で成り立つかを判定してください。",
     fact: {
       true: "質問の内容は真相において事実である",
       false: "質問の内容は真相において事実ではない",
@@ -63,8 +67,10 @@ const TEMPLATES = {
     // 内容が物語に関係あるかは answer 側で判定するので、ここでは質問の形だけを問う。
     valid:
       "プレイヤーの入力（playerQuestion）は、YES か NO で答えられる形の質問である。質問の内容が物語に関係あるかどうかは問わない。",
-    keyPoint: (point: string) => `プレイヤーの回答（playerAnswer）は次の要点を含んでいる：「${point}」`,
-    consistent: "プレイヤーの回答（playerAnswer）は、真相と矛盾する内容や、互いに相反する複数の仮説を含まない。",
+    keyPoint: (point: string) =>
+      `プレイヤーの回答（playerAnswer）は次の要点を含んでいる：「${point}」`,
+    consistent:
+      "プレイヤーの回答（playerAnswer）は、真相と矛盾する内容や、互いに相反する複数の仮説を含まない。",
   },
   en: {
     answer:
@@ -72,7 +78,8 @@ const TEMPLATES = {
     fact: {
       true: "The content of the question is a fact in the truth",
       false: "The content of the question is not a fact in the truth",
-      unknown: "Cannot be determined from the truth, or irrelevant to the story",
+      unknown:
+        "Cannot be determined from the truth, or irrelevant to the story",
     },
     yesno: {
       true: "YES",
@@ -81,7 +88,8 @@ const TEMPLATES = {
     },
     valid:
       "The player's input (playerQuestion) is a question in a form that can be answered with YES or NO, regardless of whether its content is related to the story.",
-    keyPoint: (point: string) => `The player's answer (playerAnswer) contains this key point: "${point}"`,
+    keyPoint: (point: string) =>
+      `The player's answer (playerAnswer) contains this key point: "${point}"`,
     consistent:
       "The player's answer (playerAnswer) contains nothing that contradicts the truth, and does not list multiple mutually conflicting hypotheses.",
   },
@@ -101,19 +109,30 @@ export async function judgeQuestion(
     playerQuestion,
   };
   const questions: Record<string, JevQuestion> = {
-    answer: { type: "choice", instructions: t.answer, criteria: { ...t[options.labels] } },
+    answer: {
+      type: "choice",
+      instructions: t.answer,
+      criteria: { ...t[options.labels] },
+    },
     isValidQuestion: { type: "boolean", instructions: t.valid },
   };
 
   const result = await client.evaluate(state, questions);
   const answer = expectType(result.answers.answer, "choice");
-  const validProbability = expectType(result.answers.isValidQuestion, "boolean").probability;
+  const validProbability = expectType(
+    result.answers.isValidQuestion,
+    "boolean",
+  ).probability;
   const rawChoice = answer.choice as QuestionJudgement["rawChoice"];
 
   // 設計書 §4.3 の合成ルール（上から順に判定する）
   let internalVerdict: InternalVerdict;
   if (validProbability < options.validThreshold) internalVerdict = "invalid";
-  else if (answer.confidence === undefined || answer.confidence < options.confidenceThreshold) internalVerdict = "uncertain";
+  else if (
+    answer.confidence === undefined ||
+    answer.confidence < options.confidenceThreshold
+  )
+    internalVerdict = "uncertain";
   else if (rawChoice === "true") internalVerdict = "yes";
   else if (rawChoice === "false") internalVerdict = "no";
   else internalVerdict = "irrelevant";
@@ -167,24 +186,38 @@ export async function judgeSolution(
   playerAnswer: string,
   options: Partial<SolutionOptions> = {},
 ): Promise<SolutionJudgement> {
-  const { lang, pointThreshold, consistencyThreshold } = { ...DEFAULT_SOLUTION_OPTIONS, ...options };
+  const { lang, pointThreshold, consistencyThreshold } = {
+    ...DEFAULT_SOLUTION_OPTIONS,
+    ...options,
+  };
   const t = TEMPLATES[lang];
   const questions: Record<string, JevQuestion> = {
     ...Object.fromEntries(
-      puzzle.keyPoints.map((point, i) => [`kp${i}`, { type: "boolean", instructions: t.keyPoint(point) }]),
+      puzzle.keyPoints.map((point, i) => [
+        `kp${i}`,
+        { type: "boolean", instructions: t.keyPoint(point) },
+      ]),
     ),
     consistent: { type: "boolean", instructions: t.consistent },
   };
-  const result = await client.evaluate({ problem: puzzle.problem, truth: puzzle.truth, playerAnswer }, questions);
+  const result = await client.evaluate(
+    { problem: puzzle.problem, truth: puzzle.truth, playerAnswer },
+    questions,
+  );
 
   const pointProbabilities = puzzle.keyPoints.map(
     (_, i) => expectType(result.answers[`kp${i}`], "boolean").probability,
   );
-  const consistentProbability = expectType(result.answers.consistent, "boolean").probability;
+  const consistentProbability = expectType(
+    result.answers.consistent,
+    "boolean",
+  ).probability;
   // matched は矛盾の判定に関係なく、要点ごとの判定だけで数える
   const matched = pointProbabilities.filter((p) => p >= pointThreshold).length;
   return {
-    solved: matched === puzzle.keyPoints.length && consistentProbability >= consistencyThreshold,
+    solved:
+      matched === puzzle.keyPoints.length &&
+      consistentProbability >= consistencyThreshold,
     matched,
     total: puzzle.keyPoints.length,
     pointProbabilities,
@@ -198,7 +231,9 @@ function expectType<T extends JevAnswer["type"]>(
   type: T,
 ): Extract<JevAnswer, { type: T }> {
   if (!answer || answer.type !== type) {
-    throw new Error(`Jev の回答が想定外です（期待: ${type}, 実際: ${answer?.type ?? "なし"}）`);
+    throw new Error(
+      `Jev の回答が想定外です（期待: ${type}, 実際: ${answer?.type ?? "なし"}）`,
+    );
   }
   return answer as Extract<JevAnswer, { type: T }>;
 }
