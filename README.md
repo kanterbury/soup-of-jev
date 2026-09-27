@@ -22,6 +22,7 @@ npm run dev                         # http://localhost:3000
 | `TYPESAFE_API_KEY` | `direct` のときの鍵 |
 | `AI_GATEWAY_API_KEY` | `gateway` のときの鍵 |
 | `KV_REST_API_URL`、`KV_REST_API_TOKEN` | いいねの数の保存先（Upstash Redis）。Vercel Marketplace で追加すると入る。`UPSTASH_REDIS_REST_URL`／`_TOKEN` でもよい。空のときはメモリで数える（開発用。再起動で消える） |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | アクセス解析（Google Analytics 4）の測定 ID。空のときは読み込まず、計測しない。本番（Production）にだけ設定する（`docs/analytics.md`） |
 
 ## コマンド
 
@@ -70,7 +71,8 @@ Vercel Hobby に、GitHub のリポジトリを取り込んで公開している
    いいねの保存先は、「Storage」（Marketplace）から Upstash Redis（無料枠）を追加してプロジェクトにつなぐ。`KV_REST_API_URL`・`KV_REST_API_TOKEN` が自動で入る。
 3. 「Firewall」にレート制限ルールを 1 つ作る：Request Path が `/api/` で始まるリクエストを、IP ごとに 60 秒あたり 60 回まで。
 4. TypeSafe には支出の上限・アラートがないので、請求額を定期的に確かめる。
-5. 独自ドメインは「Settings → Domains」で追加し、表示された CNAME を DNS に登録する。`soup-of-jev.kanterbury.com` は、`kanterbury.com` の DNS を管理している Route 53 に CNAME を登録している。
+5. アクセス解析：Google アナリティクスでプロパティとウェブストリームを作り、測定 ID を `NEXT_PUBLIC_GA_MEASUREMENT_ID` として **Production にだけ** 設定する（ビルド時に埋め込まれるので、設定後に再デプロイする）。GA の管理画面では、Google シグナルを無効、データ保持期間を 2 か月にする。`puzzle_solved` をキーイベントにし、イベントの引数 `puzzle_id`・`verdict` をカスタムディメンション、`question_count` をカスタム指標に登録する（`docs/analytics.md`）。
+6. 独自ドメインは「Settings → Domains」で追加し、表示された CNAME を DNS に登録する。`soup-of-jev.kanterbury.com` は、`kanterbury.com` の DNS を管理している Route 53 に CNAME を登録している。
 
 公開前に、その URL で通しプレイ（質問・回答・真相を見る・やり直す、PC 幅とスマホ幅）を確かめる。
 コマンドラインから API を試すときは、日本語が UTF-8 で送られることを確かめる（Windows の curl に日本語を直接渡すと文字化けし、判定がすべて「どちらともいえない」のように見える）。
@@ -85,5 +87,6 @@ Vercel Hobby に、GitHub のリポジトリを取り込んで公開している
 - `src/lib/judge.ts` — 質問判定と正解判定
 - `src/lib/progress.ts` — 進行状況と、いいねを押したかの保存（ブラウザの localStorage）
 - `src/lib/likes.ts` — いいねの数の保存（Upstash Redis。なければメモリ）。ブラウザ側で数を持つのは `src/lib/likeCounts.ts`
+- `src/lib/analytics.ts` — アクセス解析（Google Analytics 4）に送るイベントの型と送信。質問文・回答文は送らない
 - `data/puzzles/` — 問題（`truth` / `facts` / `keyPoints` はサーバーの外に出さない）
 - `eval/cases/` — 評価ケース。否定疑問文の期待値は日本語の慣習に従う（「〜ではないのですか？」の内容が成り立てば `yes`）

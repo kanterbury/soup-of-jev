@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 import { toggleLike, useLikeCounts } from "@/lib/likeCounts";
 import { useLiked } from "@/lib/progress";
 import { Heart } from "./Ornaments";
@@ -16,7 +17,9 @@ export function LikeButton({ puzzleId }: { puzzleId: string }) {
     if (sending || liked === undefined) return;
     setSending(true);
     setError(undefined);
-    setError(await toggleLike(puzzleId, !liked));
+    const error = await toggleLike(puzzleId, !liked);
+    setError(error);
+    if (!error) track({ name: "like", params: { puzzle_id: puzzleId, liked: !liked } });
     setSending(false);
   }
 

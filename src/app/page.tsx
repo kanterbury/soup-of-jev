@@ -1,4 +1,4 @@
-import { GitHubMark, GoldDivider, Logo, PrivacyNote } from "@/components/Ornaments";
+import { AnalyticsNote, GitHubMark, GoldDivider, Logo, PrivacyNote } from "@/components/Ornaments";
 import { listPublicPuzzles } from "@/lib/puzzles";
 import { PuzzleList } from "./PuzzleList";
 
@@ -20,6 +20,7 @@ export default function Home() {
 
       <footer className="mt-auto flex flex-col items-center gap-1 text-center">
         <PrivacyNote />
+        <AnalyticsNote />
         <a
           href={REPOSITORY_URL}
           target="_blank"
