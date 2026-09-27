@@ -32,6 +32,7 @@
 
 - **言語**：ドキュメント・コメント・コミットメッセージは日本語。コード上の識別子は英語。
 - **ブランチ**：既定のブランチは `master`。新しいブランチ名は半角英数字とハイフン・スラッシュ・アンダースコアで付ける（例：`feature/play-screen`）。
+- **フォーマット**：コミット時に、ステージしたファイルを Prettier が自動で整形する（husky + lint-staged。フックは `npm install` で入る）。手動で整形するときは `npm run format`。
 - **TypeScript 7**：`types` の既定値が変わったため、`tsconfig.json` で `"types": ["node"]` を明示している。外すと Node の型が見つからなくなる。
 
 <!-- BEGIN:nextjs-agent-rules -->
