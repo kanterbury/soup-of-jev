@@ -5,6 +5,7 @@ import type { Puzzle } from "./puzzles";
 
 const puzzle: Puzzle = {
   id: "test",
+  number: 1,
   title: "テスト",
   problem: "問題文",
   truth: "真相",

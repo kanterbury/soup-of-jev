@@ -4,6 +4,8 @@ import path from "node:path";
 /** サーバー側だけで扱う完全な問題データ。truth / facts / keyPoints はクライアントに渡さない。 */
 export type Puzzle = {
   id: string;
+  /** 一覧に出す固定の番号（No.）。追加した順に振る */
+  number: number;
   title: string;
   /** プレイヤーに見せる問題文 */
   problem: string;
@@ -16,7 +18,7 @@ export type Puzzle = {
 };
 
 /** クライアントに返してよい項目だけ */
-export type PublicPuzzle = Pick<Puzzle, "id" | "title" | "problem">;
+export type PublicPuzzle = Pick<Puzzle, "id" | "number" | "title" | "problem">;
 
 const PUZZLE_DIR = path.join(process.cwd(), "data", "puzzles");
 
@@ -37,9 +39,9 @@ export function getPuzzle(id: string): Puzzle | undefined {
 }
 
 export function listPublicPuzzles(): PublicPuzzle[] {
-  return [...loadAll().values()].map(toPublic);
+  return [...loadAll().values()].sort((a, b) => a.number - b.number).map(toPublic);
 }
 
-export function toPublic({ id, title, problem }: Puzzle): PublicPuzzle {
-  return { id, title, problem };
+export function toPublic({ id, number, title, problem }: Puzzle): PublicPuzzle {
+  return { id, number, title, problem };
 }

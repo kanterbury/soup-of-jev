@@ -18,6 +18,11 @@ const progressKey = (puzzleId: string) => `${PREFIX}progress:${puzzleId}`;
 const HOWTO_KEY = `${PREFIX}seen-howto`;
 // いいねを押したか（設計書 D8）。やり直し（clearProgress）では消さない
 const likedKey = (puzzleId: string) => `${PREFIX}liked:${puzzleId}`;
+// 問題一覧の並び順（設計書 D9）
+const SORT_KEY = `${PREFIX}list-sort`;
+
+/** 問題一覧の並び順。newest は新しい順（number の降順）、likes はいいねの多い順 */
+export type PuzzleSort = "newest" | "likes";
 
 /** 同じタブでの書き込みを購読者に知らせるイベント（storage イベントは別のタブでしか発火しない） */
 const CHANGE_EVENT = "soup-of-jev:progress-change";
@@ -80,6 +85,10 @@ export function setLiked(puzzleId: string, liked: boolean) {
   write(likedKey(puzzleId), liked ? "1" : null);
 }
 
+export function setListSort(sort: PuzzleSort) {
+  write(SORT_KEY, sort);
+}
+
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange);
   window.addEventListener(CHANGE_EVENT, onChange);
@@ -128,5 +137,14 @@ export function useLiked(puzzleId: string): boolean | undefined {
     subscribe,
     () => read(likedKey(puzzleId)) !== null,
     () => undefined,
+  );
+}
+
+/** 問題一覧の並び順。サーバーでの描画中と、記録がないか読めないときは新しい順 */
+export function useListSort(): PuzzleSort {
+  return useSyncExternalStore(
+    subscribe,
+    () => (read(SORT_KEY) === "likes" ? "likes" : "newest"),
+    () => "newest",
   );
 }
