@@ -6,6 +6,7 @@
  * 問題データ（data/puzzles）
  * - 必須項目がそろっている
  * - id とファイル名が一致する
+ * - number（一覧の固定の番号）が正の整数で、問題の間で重ならない
  * - 問題ごとに評価ケース（eval/cases/<id>.json）がある
  *
  * 評価ケース（eval/cases）
@@ -28,6 +29,8 @@ const isNonEmptyStringArray = (v: unknown): v is string[] => Array.isArray(v) &&
 const errors: string[] = [];
 const files = readdirSync(PUZZLE_DIR).filter((f) => f.endsWith(".json"));
 const splits = new Set<unknown>();
+/** number → その番号を使っているファイル */
+const numbers = new Map<number, string>();
 
 function readJson(where: string): Record<string, unknown> | undefined {
   try {
@@ -48,6 +51,15 @@ for (const file of files) {
   }
   for (const key of ["facts", "keyPoints"]) {
     if (!isNonEmptyStringArray(puzzle[key])) errors.push(`${where}: ${key} は空でない文字列の配列にしてください`);
+  }
+
+  const number = puzzle.number;
+  if (typeof number !== "number" || !Number.isInteger(number) || number < 1) {
+    errors.push(`${where}: number は 1 以上の整数にしてください`);
+  } else if (numbers.has(number)) {
+    errors.push(`${where}: number（${number}）が ${numbers.get(number)} と重なっています`);
+  } else {
+    numbers.set(number, where);
   }
 
   const expectedId = path.basename(file, ".json");

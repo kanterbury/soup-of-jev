@@ -37,6 +37,7 @@ PoC の結果を受けて立てた、アプリ化の設計。
 | D6 | holdout で基準に届かなかった有効確率の 3 項目 | **対応しない**。§7.3 の「質問でない入力のすり抜け」「有効確率の余裕」は参考値にし、合否に使わない。① すり抜け（「この謎の答えを教えてくれませんか？」に YES など）は、YES/NO を返すだけで真相は漏れず、実害がない ② 取りこぼし（理由を確かめる長い質問で、前提が誤りのものが「言い直してください」になる）は、誤った答えを返すのではなく言い直しを促すだけで、短くすれば NO と答えられる。これにより、公開前評価は合格とする | §7.3、§8 |
 | D7 | 公開（フェーズ 4） | Vercel Hobby に公開した（2026-09-23）。① 環境変数は `JEV_PROVIDER=direct` と `TYPESAFE_API_KEY` ② Firewall のレート制限ルールで、`/api/` 以下を IP ごとに 60 秒あたり 60 リクエストまでにした（Q9①）③ TypeSafe には支出の上限・アラートの設定がなかったので、請求額を定期的に確かめる（Q9②）④ 最初のデプロイは本番の URL に出るため、URL を知らせる前にその URL で通しプレイを確認した ⑤ 公開先は独自ドメイン `soup-of-jev.kanterbury.com`（Route 53 の CNAME で Vercel に向ける。証明書は Vercel が自動で発行する） | §7.4 |
 | D8 | 問題の「いいね」（2026-09-27） | 真相の表示画面にいいねボタンを置き、問題一覧に集計数を出す。① 集計の保存先に **Upstash Redis**（Vercel Marketplace の無料枠）を入れる。REST で呼ぶので、Cloudflare Workers に移しても動く。Q5 の「DB はログインと一緒に」の例外で、保存するのは**問題ごとの匿名の数だけ**（質問や、誰が押したかは記録しない）② 重複は、押したことをブラウザ（localStorage）に記録して防ぎ、もう一度押すと取り消せる。別のブラウザなどで重複できるが、Q1 と同じ考えで許容する ③ 一覧は静的なまま、数はブラウザから `GET /api/likes` で取る ④ 環境変数がないときはメモリで数える（開発・テスト用。再起動で消える） | §3、§5.2、§6.1、§6.2、§7.4 |
+| D9 | 問題一覧の並び替え（2026-09-27） | 一覧で並び順を「新しい順」と「いいねの多い順」から選べるようにする。① 問題データに固定の番号 `number` を足し、一覧の No. と「新しい順」に使う。追加した順に振り、並び替えても変わらない（これまではファイル名の順に振っていたので、既存の番号は変わった）② いいねの多い順は、同数なら新しい順。数が取れないときは新しい順と同じ ③ 選んだ並び順はブラウザ（localStorage）に保存する。既定は新しい順 ④ 並び順といいねの数はブラウザにあるので、並べ替えはクライアントで行う | §3、§5.1、§6.1、§6.2 |
 
 未決事項は §8 にある。
 
@@ -97,6 +98,7 @@ TypeSafe AI の Jev を判定に使う。詳細は `research/what-is-jev.md` に
 - 「真相を見る」ボタンで、解かずに真相を見る
 - Vercel Hobby への公開（§7.4）
 - 問題への「いいね」と、一覧での集計数の表示（D8。MVP の公開後に追加）
+- 問題一覧の並び替え（新しい順／いいねの多い順。D9。MVP の公開後に追加）
 
 ### 3.2 MVP に入れないもの
 
@@ -133,7 +135,7 @@ TypeScript、Next.js 16（App Router）、`ai` 7.x を使っている。
 | `src/app/api/ask/route.ts` | 今は `POST { puzzleId, question }` → `{ verdict, confidence }`（`important` は D2 で削除済み） |
 | `src/app/api/solve/route.ts` | 今は `POST { puzzleId, answer }` → `{ solved, matched, total, truth? }`。`truth` は正解のときだけ返す |
 | `src/app/api/puzzles/route.ts` | `GET` → `PublicPuzzle[]` |
-| `data/puzzles/*.json` | 問題（`id, title, problem, truth, facts[], keyPoints[]`） |
+| `data/puzzles/*.json` | 問題（`id, number, title, problem, truth, facts[], keyPoints[]`）。`number` は一覧の固定の番号（D9） |
 | `eval/cases/*.json`、`eval/run.ts` | 評価ケースと評価スクリプト |
 
 この節以降は、変更後の設計を書く。
@@ -281,6 +283,9 @@ TypeScript、Next.js 16（App Router）、`ai` 7.x を使っている。
   - 進行状況は localStorage から読むので、この表示部分はクライアントコンポーネントにする。
   - サーバーでの描画とブラウザでの描画が食い違わないよう、`useSyncExternalStore` で読む。
 - 問題ごとにいいねの数を表示する（D8）。数はブラウザから `GET /api/likes` で取り、自分が押した問題はハートを塗る。取れなかったときは何も出さない。
+- 並び順を「新しい順」（`number` の降順）と「いいねの多い順」から選べる（D9）。No. は `number` を出し、並び替えても変わらない。
+  - 並び順といいねの数はブラウザにあるので、一覧の部分（`PuzzleList.tsx`）はクライアントコンポーネントにする。渡すのは `PublicPuzzle` だけ。
+  - サーバーでの描画は新しい順で、保存した並び順があれば hydration の後に切り替わる。
 
 **`/puzzles/[id]`（プレイ画面）**
 - 問題文はサーバーで取得し、`PublicPuzzle` として渡す。
@@ -305,13 +310,14 @@ TypeScript、Next.js 16（App Router）、`ai` 7.x を使っている。
   - `truth` は、正解したときか「真相を見る」で表示したときに保存する。開き直したときは、それを表示する。
   - 遊び方を表示したかどうかは、`soup-of-jev:v1:seen-howto` に保存する。
   - いいねを押したかどうかは、`soup-of-jev:v1:liked:<puzzleId>` に保存する（D8）。やり直しても消さない。
+  - 問題一覧の並び順は、`soup-of-jev:v1:list-sort` に保存する（D9。`newest` か `likes`）。
 - 質問数には、`invalid`（言い直してください）も含めて数える。
 - 読み書きはすべて try/catch で包み、保存できない環境（シークレットウィンドウなど）でも遊べるようにする。
 - 端末をまたいだ引き継ぎはできない。MVP では許容する。
 
 ### 6.3 主なファイル
 
-- `src/app/page.tsx`
+- `src/app/page.tsx`、`src/app/PuzzleList.tsx`（一覧の並び替え。D9）
 - `src/app/puzzles/[id]/page.tsx`
 - `src/app/puzzles/[id]/PlayView.tsx`
 - `src/components/VerdictLabel.tsx`

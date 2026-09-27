@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getPuzzle, listPublicPuzzles, toPublic } from "@/lib/puzzles";
+import { getPuzzle, toPublic } from "@/lib/puzzles";
 import { PlayView } from "./PlayView";
 
 type Props = { params: Promise<{ id: string }> };
@@ -15,7 +15,6 @@ export default async function PuzzlePage({ params }: Props) {
   const puzzle = getPuzzle(id);
   if (!puzzle) notFound();
 
-  const number = listPublicPuzzles().findIndex((p) => p.id === id) + 1;
   // クライアントコンポーネントには、真相を含まない PublicPuzzle だけを渡す（設計書 §5.3）
-  return <PlayView puzzle={toPublic(puzzle)} number={number} />;
+  return <PlayView puzzle={toPublic(puzzle)} number={puzzle.number} />;
 }
