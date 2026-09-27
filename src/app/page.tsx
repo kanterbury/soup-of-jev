@@ -1,4 +1,10 @@
-import { AnalyticsNote, GitHubMark, GoldDivider, Logo, PrivacyNote } from "@/components/Ornaments";
+import {
+  AnalyticsNote,
+  GitHubMark,
+  GoldDivider,
+  Logo,
+  PrivacyNote,
+} from "@/components/Ornaments";
 import { listPublicPuzzles } from "@/lib/puzzles";
 import { PuzzleList } from "./PuzzleList";
 
@@ -10,11 +16,15 @@ export default function Home() {
       <header className="flex flex-col items-center gap-3.5">
         <Logo size="lg" />
         <GoldDivider />
-        <div className="text-[15px] tracking-[0.3em] text-rose-muted">水平思考クイズ</div>
+        <div className="text-[15px] tracking-[0.3em] text-rose-muted">
+          水平思考クイズ
+        </div>
       </header>
 
       <main className="flex w-full flex-col gap-6">
-        <h1 className="m-0 text-center font-display text-[22px] font-extrabold text-ivory sm:text-[26px]">問題を選ぶ</h1>
+        <h1 className="m-0 text-center font-display text-[22px] font-extrabold text-ivory sm:text-[26px]">
+          問題を選ぶ
+        </h1>
         <PuzzleList puzzles={listPublicPuzzles()} />
       </main>
 

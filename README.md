@@ -16,13 +16,13 @@ cp .env.local.example .env.local   # TYPESAFE_API_KEY を設定する
 npm run dev                         # http://localhost:3000
 ```
 
-| 環境変数 | 内容 |
-|---|---|
-| `JEV_PROVIDER` | Jev の呼び出し経路。`direct`（TypeSafe 直接 API、既定）か `gateway`（Vercel AI Gateway）。`gateway` は、その経路で評価を回してから使う |
-| `TYPESAFE_API_KEY` | `direct` のときの鍵 |
-| `AI_GATEWAY_API_KEY` | `gateway` のときの鍵 |
+| 環境変数                               | 内容                                                                                                                                                                      |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JEV_PROVIDER`                         | Jev の呼び出し経路。`direct`（TypeSafe 直接 API、既定）か `gateway`（Vercel AI Gateway）。`gateway` は、その経路で評価を回してから使う                                    |
+| `TYPESAFE_API_KEY`                     | `direct` のときの鍵                                                                                                                                                       |
+| `AI_GATEWAY_API_KEY`                   | `gateway` のときの鍵                                                                                                                                                      |
 | `KV_REST_API_URL`、`KV_REST_API_TOKEN` | いいねの数の保存先（Upstash Redis）。Vercel Marketplace で追加すると入る。`UPSTASH_REDIS_REST_URL`／`_TOKEN` でもよい。空のときはメモリで数える（開発用。再起動で消える） |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | アクセス解析（Google Analytics 4）の測定 ID。空のときは読み込まず、計測しない。本番（Production）にだけ設定する（`docs/analytics.md`） |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID`        | アクセス解析（Google Analytics 4）の測定 ID。空のときは読み込まず、計測しない。本番（Production）にだけ設定する（`docs/analytics.md`）                                    |
 
 ## コマンド
 
@@ -46,14 +46,14 @@ npm run eval -- --split=holdout --repeat=3 --confirm-holdout # 確認用デー�
 
 ## API
 
-| メソッド・パス | 入力 | 出力 |
-|---|---|---|
-| `GET /api/puzzles` | なし | 問題の一覧（`id`、`title`、`problem`） |
-| `POST /api/ask` | `puzzleId`、`question`（200 文字まで） | `verdict`（`yes` / `no` / `unknown` / `invalid`） |
-| `POST /api/solve` | `puzzleId`、`answer`（500 文字まで） | `solved`、`matched`、`total`、正解時のみ `truth` |
-| `POST /api/reveal` | `puzzleId` | `truth` |
-| `GET /api/likes` | なし | `counts`（問題 ID → いいねの数） |
-| `POST /api/likes` | `puzzleId`、`liked`（`true` で押す、`false` で取り消す） | 変えた後の `count` |
+| メソッド・パス     | 入力                                                     | 出力                                              |
+| ------------------ | -------------------------------------------------------- | ------------------------------------------------- |
+| `GET /api/puzzles` | なし                                                     | 問題の一覧（`id`、`title`、`problem`）            |
+| `POST /api/ask`    | `puzzleId`、`question`（200 文字まで）                   | `verdict`（`yes` / `no` / `unknown` / `invalid`） |
+| `POST /api/solve`  | `puzzleId`、`answer`（500 文字まで）                     | `solved`、`matched`、`total`、正解時のみ `truth`  |
+| `POST /api/reveal` | `puzzleId`                                               | `truth`                                           |
+| `GET /api/likes`   | なし                                                     | `counts`（問題 ID → いいねの数）                  |
+| `POST /api/likes`  | `puzzleId`、`liked`（`true` で押す、`false` で取り消す） | 変えた後の `count`                                |
 
 Jev が混み合っている・タイムアウトしたときは 503、それ以外の失敗（いいねの保存先の失敗を含む）は 500 を返す。
 

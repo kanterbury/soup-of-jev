@@ -17,8 +17,11 @@ export class RedisLikeStore implements LikeStore {
   constructor(private readonly redis: Redis) {}
 
   async counts(puzzleIds: string[]) {
-    const all = (await this.redis.hgetall<Record<string, unknown>>(HASH_KEY)) ?? {};
-    return Object.fromEntries(puzzleIds.map((id) => [id, Math.max(0, Number(all[id]) || 0)]));
+    const all =
+      (await this.redis.hgetall<Record<string, unknown>>(HASH_KEY)) ?? {};
+    return Object.fromEntries(
+      puzzleIds.map((id) => [id, Math.max(0, Number(all[id]) || 0)]),
+    );
   }
 
   async add(puzzleId: string, delta: 1 | -1) {
@@ -34,7 +37,9 @@ export class MemoryLikeStore implements LikeStore {
   private readonly values = new Map<string, number>();
 
   async counts(puzzleIds: string[]) {
-    return Object.fromEntries(puzzleIds.map((id) => [id, this.values.get(id) ?? 0]));
+    return Object.fromEntries(
+      puzzleIds.map((id) => [id, this.values.get(id) ?? 0]),
+    );
   }
 
   async add(puzzleId: string, delta: 1 | -1) {
@@ -53,11 +58,14 @@ let store: LikeStore | undefined;
 export function getLikeStore(): LikeStore {
   if (store) return store;
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const token =
+    process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
   if (url && token) {
     store = new RedisLikeStore(new Redis({ url, token }));
   } else {
-    console.warn("いいねの保存先（KV_REST_API_URL / KV_REST_API_TOKEN）がないので、メモリで数えます");
+    console.warn(
+      "いいねの保存先（KV_REST_API_URL / KV_REST_API_TOKEN）がないので、メモリで数えます",
+    );
     store = new MemoryLikeStore();
   }
   return store;

@@ -23,8 +23,10 @@ const PUZZLE_DIR = path.join("data", "puzzles");
 const CASE_DIR = path.join("eval", "cases");
 const VERDICTS = ["yes", "no", "unknown", "invalid"];
 
-const isNonEmptyString = (v: unknown): v is string => typeof v === "string" && v.trim() !== "";
-const isNonEmptyStringArray = (v: unknown): v is string[] => Array.isArray(v) && v.length > 0 && v.every(isNonEmptyString);
+const isNonEmptyString = (v: unknown): v is string =>
+  typeof v === "string" && v.trim() !== "";
+const isNonEmptyStringArray = (v: unknown): v is string[] =>
+  Array.isArray(v) && v.length > 0 && v.every(isNonEmptyString);
 
 const errors: string[] = [];
 const files = readdirSync(PUZZLE_DIR).filter((f) => f.endsWith(".json"));
@@ -47,67 +49,99 @@ for (const file of files) {
   if (!puzzle) continue;
 
   for (const key of ["id", "title", "problem", "truth"]) {
-    if (!isNonEmptyString(puzzle[key])) errors.push(`${where}: ${key} は空でない文字列にしてください`);
+    if (!isNonEmptyString(puzzle[key]))
+      errors.push(`${where}: ${key} は空でない文字列にしてください`);
   }
   for (const key of ["facts", "keyPoints"]) {
-    if (!isNonEmptyStringArray(puzzle[key])) errors.push(`${where}: ${key} は空でない文字列の配列にしてください`);
+    if (!isNonEmptyStringArray(puzzle[key]))
+      errors.push(`${where}: ${key} は空でない文字列の配列にしてください`);
   }
 
   const number = puzzle.number;
   if (typeof number !== "number" || !Number.isInteger(number) || number < 1) {
     errors.push(`${where}: number は 1 以上の整数にしてください`);
   } else if (numbers.has(number)) {
-    errors.push(`${where}: number（${number}）が ${numbers.get(number)} と重なっています`);
+    errors.push(
+      `${where}: number（${number}）が ${numbers.get(number)} と重なっています`,
+    );
   } else {
     numbers.set(number, where);
   }
 
   const expectedId = path.basename(file, ".json");
-  if (puzzle.id !== expectedId) errors.push(`${where}: id（${String(puzzle.id)}）をファイル名（${expectedId}）と一致させてください`);
+  if (puzzle.id !== expectedId)
+    errors.push(
+      `${where}: id（${String(puzzle.id)}）をファイル名（${expectedId}）と一致させてください`,
+    );
 
   const casePath = path.join(CASE_DIR, file);
   if (!existsSync(casePath)) {
     errors.push(`${where}: 評価ケース ${casePath} がありません`);
     continue;
   }
-  const keyPointCount = isNonEmptyStringArray(puzzle.keyPoints) ? puzzle.keyPoints.length : 0;
+  const keyPointCount = isNonEmptyStringArray(puzzle.keyPoints)
+    ? puzzle.keyPoints.length
+    : 0;
   checkCases(casePath, expectedId, keyPointCount);
 }
 
 function checkCases(where: string, puzzleId: string, keyPointCount: number) {
   const cases = readJson(where);
   if (!cases) return;
-  if (cases.puzzleId !== puzzleId) errors.push(`${where}: puzzleId を ${puzzleId} にしてください`);
-  if (cases.split !== "dev" && cases.split !== "holdout") errors.push(`${where}: split は dev か holdout にしてください`);
+  if (cases.puzzleId !== puzzleId)
+    errors.push(`${where}: puzzleId を ${puzzleId} にしてください`);
+  if (cases.split !== "dev" && cases.split !== "holdout")
+    errors.push(`${where}: split は dev か holdout にしてください`);
   splits.add(cases.split);
 
-  const questions = Array.isArray(cases.questions) ? (cases.questions as Record<string, unknown>[]) : [];
+  const questions = Array.isArray(cases.questions)
+    ? (cases.questions as Record<string, unknown>[])
+    : [];
   if (questions.length === 0) errors.push(`${where}: questions がありません`);
   questions.forEach((q, i) => {
     const at = `${where}: questions[${i}]`;
-    if (!CATEGORIES.includes(q.category as never)) errors.push(`${at}: category が不明です（${String(q.category)}）`);
+    if (!CATEGORIES.includes(q.category as never))
+      errors.push(`${at}: category が不明です（${String(q.category)}）`);
     if (!isNonEmptyString(q.question)) errors.push(`${at}: question が空です`);
     const expected = Array.isArray(q.expected) ? q.expected : [q.expected];
-    if (expected.length === 0 || !expected.every((v) => VERDICTS.includes(v as string))) {
-      errors.push(`${at}: expected が不明です（${JSON.stringify(q.expected)}）`);
+    if (
+      expected.length === 0 ||
+      !expected.every((v) => VERDICTS.includes(v as string))
+    ) {
+      errors.push(
+        `${at}: expected が不明です（${JSON.stringify(q.expected)}）`,
+      );
     }
     if ((q.category === "ambiguous") !== Array.isArray(q.expected)) {
       errors.push(`${at}: 期待値を配列にするのは ambiguous だけにしてください`);
     }
   });
 
-  const solutions = Array.isArray(cases.solutions) ? (cases.solutions as Record<string, unknown>[]) : [];
+  const solutions = Array.isArray(cases.solutions)
+    ? (cases.solutions as Record<string, unknown>[])
+    : [];
   if (solutions.length === 0) errors.push(`${where}: solutions がありません`);
   solutions.forEach((s, i) => {
     const at = `${where}: solutions[${i}]`;
-    if (!SOLUTION_KINDS.includes(s.kind as never)) errors.push(`${at}: kind が不明です（${String(s.kind)}）`);
+    if (!SOLUTION_KINDS.includes(s.kind as never))
+      errors.push(`${at}: kind が不明です（${String(s.kind)}）`);
     if (!isNonEmptyString(s.answer)) errors.push(`${at}: answer が空です`);
     const shouldSolve = s.kind === "correct" || s.kind === "paraphrase";
-    if (s.expectedSolved !== shouldSolve) errors.push(`${at}: kind が ${String(s.kind)} なら expectedSolved は ${shouldSolve} です`);
+    if (s.expectedSolved !== shouldSolve)
+      errors.push(
+        `${at}: kind が ${String(s.kind)} なら expectedSolved は ${shouldSolve} です`,
+      );
     if (s.kind === "partial") {
       const m = s.expectedMatched;
-      if (typeof m !== "number" || !Number.isInteger(m) || m < 0 || m >= keyPointCount) {
-        errors.push(`${at}: partial の expectedMatched は 0 以上 ${keyPointCount - 1} 以下の整数にしてください`);
+      if (
+        typeof m !== "number" ||
+        !Number.isInteger(m) ||
+        m < 0 ||
+        m >= keyPointCount
+      ) {
+        errors.push(
+          `${at}: partial の expectedMatched は 0 以上 ${keyPointCount - 1} 以下の整数にしてください`,
+        );
       }
     }
   });
@@ -115,10 +149,14 @@ function checkCases(where: string, puzzleId: string, keyPointCount: number) {
 
 if (files.length === 0) errors.push(`${PUZZLE_DIR} に問題がありません`);
 for (const split of ["dev", "holdout"]) {
-  if (files.length > 0 && !splits.has(split)) errors.push(`split が ${split} の評価ケースがありません`);
+  if (files.length > 0 && !splits.has(split))
+    errors.push(`split が ${split} の評価ケースがありません`);
 }
 for (const file of readdirSync(CASE_DIR).filter((f) => f.endsWith(".json"))) {
-  if (!files.includes(file)) errors.push(`${path.join(CASE_DIR, file)}: 対応する問題 ${path.join(PUZZLE_DIR, file)} がありません`);
+  if (!files.includes(file))
+    errors.push(
+      `${path.join(CASE_DIR, file)}: 対応する問題 ${path.join(PUZZLE_DIR, file)} がありません`,
+    );
 }
 
 if (errors.length > 0) {

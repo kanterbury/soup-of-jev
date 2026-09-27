@@ -20,7 +20,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ja">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
         {/* 日本語の書体はファイルが大きいので、next/font で自前配信せず、Google Fonts の分割配信を使う */}
         <link
           rel="stylesheet"
@@ -49,7 +53,12 @@ function Backdrop() {
     >
       <svg className="absolute inset-0 size-full opacity-[0.16] mix-blend-overlay">
         <filter id="velvet">
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.9"
+            numOctaves="2"
+            stitchTiles="stitch"
+          />
         </filter>
         <rect width="100%" height="100%" filter="url(#velvet)" />
       </svg>

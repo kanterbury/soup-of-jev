@@ -27,8 +27,12 @@ let cache: Map<string, Puzzle> | undefined;
 function loadAll(): Map<string, Puzzle> {
   if (cache) return cache;
   cache = new Map();
-  for (const file of readdirSync(PUZZLE_DIR).filter((f) => f.endsWith(".json"))) {
-    const puzzle = JSON.parse(readFileSync(path.join(PUZZLE_DIR, file), "utf8")) as Puzzle;
+  for (const file of readdirSync(PUZZLE_DIR).filter((f) =>
+    f.endsWith(".json"),
+  )) {
+    const puzzle = JSON.parse(
+      readFileSync(path.join(PUZZLE_DIR, file), "utf8"),
+    ) as Puzzle;
     cache.set(puzzle.id, puzzle);
   }
   return cache;
@@ -39,7 +43,9 @@ export function getPuzzle(id: string): Puzzle | undefined {
 }
 
 export function listPublicPuzzles(): PublicPuzzle[] {
-  return [...loadAll().values()].sort((a, b) => a.number - b.number).map(toPublic);
+  return [...loadAll().values()]
+    .sort((a, b) => a.number - b.number)
+    .map(toPublic);
 }
 
 export function toPublic({ id, number, title, problem }: Puzzle): PublicPuzzle {

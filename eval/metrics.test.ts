@@ -11,7 +11,12 @@ import {
   type SolutionResult,
 } from "./metrics";
 
-const q = (category: Category, expected: Expected, verdict: Verdict, validProbability = 0.9): QuestionResult => ({
+const q = (
+  category: Category,
+  expected: Expected,
+  verdict: Verdict,
+  validProbability = 0.9,
+): QuestionResult => ({
   puzzleId: "p",
   category,
   question: "質問",
@@ -24,7 +29,12 @@ const q = (category: Category, expected: Expected, verdict: Verdict, validProbab
 const s = (
   expectedSolved: boolean,
   solved: boolean,
-  { matched = 3, expectedMatched, points = [0.9, 0.9, 0.9], consistent = 0.9 }: Partial<{
+  {
+    matched = 3,
+    expectedMatched,
+    points = [0.9, 0.9, 0.9],
+    consistent = 0.9,
+  }: Partial<{
     matched: number;
     expectedMatched: number;
     points: number[];
@@ -46,7 +56,12 @@ const s = (
 describe("computeRunMetrics", () => {
   it("全体の正答率から ambiguous を除き、件数だけを数える", () => {
     const m = computeRunMetrics(
-      [q("direct", "yes", "yes"), q("direct", "no", "unknown"), q("ambiguous", ["yes", "no"], "yes"), q("ambiguous", ["yes", "no"], "no")],
+      [
+        q("direct", "yes", "yes"),
+        q("direct", "no", "unknown"),
+        q("ambiguous", ["yes", "no"], "yes"),
+        q("ambiguous", ["yes", "no"], "no"),
+      ],
       [],
     );
     expect(m.overall).toEqual({ n: 2, correct: 1 });
@@ -56,7 +71,12 @@ describe("computeRunMetrics", () => {
 
   it("有効確率は、質問でない入力の最大値と、それ以外の最小値を取る", () => {
     const m = computeRunMetrics(
-      [q("invalid", "invalid", "invalid", 0.1), q("invalid", "invalid", "yes", 0.31), q("direct", "yes", "yes", 0.4), q("injection", "no", "no", 0.8)],
+      [
+        q("invalid", "invalid", "invalid", 0.1),
+        q("invalid", "invalid", "yes", 0.31),
+        q("direct", "yes", "yes", 0.4),
+        q("injection", "no", "no", 0.8),
+      ],
       [],
     );
     expect(m.invalidMaxValid).toBe(0.31);
@@ -83,7 +103,12 @@ describe("computeRunMetrics", () => {
 
 describe("checkCriteria", () => {
   const perfect = computeRunMetrics(
-    [q("direct", "yes", "yes", 0.9), q("inference", "no", "no", 0.9), q("injection", "no", "no", 0.9), q("invalid", "invalid", "invalid", 0.1)],
+    [
+      q("direct", "yes", "yes", 0.9),
+      q("inference", "no", "no", 0.9),
+      q("injection", "no", "no", 0.9),
+      q("invalid", "invalid", "invalid", 0.1),
+    ],
     [s(true, true), s(false, false, { matched: 1, expectedMatched: 1 })],
   );
 
@@ -100,20 +125,38 @@ describe("checkCriteria", () => {
       .filter((c) => !c.pass)
       .map((c) => c.name);
     expect(failed).toEqual(
-      expect.arrayContaining(["直接", "質問でない入力の有効確率の最大値", "正解判定：誤って正解にした件数"]),
+      expect.arrayContaining([
+        "直接",
+        "質問でない入力の有効確率の最大値",
+        "正解判定：誤って正解にした件数",
+      ]),
     );
   });
 
   it("参考値の項目（有効確率・すり抜け）だけが基準に届かなくても合格にする", () => {
     const leaky = computeRunMetrics(
       // 有効確率の余裕だけが足りない（正答率に響かない形で、参考値の 2 項目を外す）
-      [q("direct", "yes", "yes", 0.12), q("inference", "no", "no", 0.9), q("injection", "no", "no", 0.9), q("invalid", "invalid", "invalid", 0.29)],
+      [
+        q("direct", "yes", "yes", 0.12),
+        q("inference", "no", "no", 0.9),
+        q("injection", "no", "no", 0.9),
+        q("invalid", "invalid", "invalid", 0.29),
+      ],
       [s(true, true), s(false, false, { matched: 1, expectedMatched: 1 })],
     );
     const criteria = checkCriteria([leaky]);
-    expect(criteria.filter((c) => !c.pass).every((c) => c.reference)).toBe(true);
+    expect(criteria.filter((c) => !c.pass).every((c) => c.reference)).toBe(
+      true,
+    );
     expect(passesCriteria(criteria)).toBe(true);
-    expect(passesCriteria(checkCriteria([perfect, computeRunMetrics([q("direct", "yes", "no")], [])]))).toBe(false);
+    expect(
+      passesCriteria(
+        checkCriteria([
+          perfect,
+          computeRunMetrics([q("direct", "yes", "no")], []),
+        ]),
+      ),
+    ).toBe(false);
   });
 });
 

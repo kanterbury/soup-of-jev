@@ -6,9 +6,28 @@ import type { Verdict } from "./judge";
  * 送るのは問題 ID・判定・数だけで、質問文・回答文は送らない（Q5）。自由入力の文字列が紛れ込まないよう、引数を型で縛る。
  */
 export type AnalyticsEvent =
-  | { name: "ask"; params: { puzzle_id: string; verdict: Verdict; question_number: number } }
-  | { name: "solve_attempt"; params: { puzzle_id: string; solved: boolean; matched: number; total: number; question_count: number } }
-  | { name: "puzzle_solved"; params: { puzzle_id: string; question_count: number; attempt_count: number } }
+  | {
+      name: "ask";
+      params: { puzzle_id: string; verdict: Verdict; question_number: number };
+    }
+  | {
+      name: "solve_attempt";
+      params: {
+        puzzle_id: string;
+        solved: boolean;
+        matched: number;
+        total: number;
+        question_count: number;
+      };
+    }
+  | {
+      name: "puzzle_solved";
+      params: {
+        puzzle_id: string;
+        question_count: number;
+        attempt_count: number;
+      };
+    }
   | { name: "reveal"; params: { puzzle_id: string; question_count: number } }
   | { name: "restart"; params: { puzzle_id: string } }
   | { name: "like"; params: { puzzle_id: string; liked: boolean } };

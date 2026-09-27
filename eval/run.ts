@@ -11,9 +11,19 @@
  *
  * 閾値はアプリと同じ定数（DEFAULT_JUDGE_OPTIONS / DEFAULT_SOLUTION_OPTIONS）を使う。
  */
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import path from "node:path";
-import { createJevClient, JEV_MODEL, type JevClient } from "../src/lib/jev/client";
+import {
+  createJevClient,
+  JEV_MODEL,
+  type JevClient,
+} from "../src/lib/jev/client";
 import {
   DEFAULT_JUDGE_OPTIONS,
   DEFAULT_SOLUTION_OPTIONS,
@@ -56,14 +66,22 @@ const VARIANTS: Record<string, JudgeOptions> = {
   en: { ...base, lang: "en" },
   yesno: { ...base, labels: "yesno" },
 };
-const variantNames = args.all ? Object.keys(VARIANTS) : [args.variant ?? "baseline"];
+const variantNames = args.all
+  ? Object.keys(VARIANTS)
+  : [args.variant ?? "baseline"];
 const split = (args.split ?? "dev") as Split;
 const repeat = Number(args.repeat ?? 1);
 const CONCURRENCY = Number(args.concurrency ?? 5);
 const PRICE_PER_INPUT_TOKEN = 0.042 / 1_000_000;
 
-if (split !== "dev" && split !== "holdout") throw new Error(`--split は dev か holdout を指定してください（現在: ${split}）`);
-if (!Number.isInteger(repeat) || repeat < 1) throw new Error(`--repeat は 1 以上の整数を指定してください（現在: ${args.repeat}）`);
+if (split !== "dev" && split !== "holdout")
+  throw new Error(
+    `--split は dev か holdout を指定してください（現在: ${split}）`,
+  );
+if (!Number.isInteger(repeat) || repeat < 1)
+  throw new Error(
+    `--repeat は 1 以上の整数を指定してください（現在: ${args.repeat}）`,
+  );
 if (split === "holdout" && !args["confirm-holdout"]) {
   // 確認用データは一度だけ評価する。結果を見て閾値を直したら、新しい確認用データを用意する（設計書 §7.2-3）
   throw new Error(
@@ -73,10 +91,16 @@ if (split === "holdout" && !args["confirm-holdout"]) {
 
 const caseFiles: CaseFile[] = readdirSync("eval/cases")
   .filter((f) => f.endsWith(".json"))
-  .map((f) => JSON.parse(readFileSync(path.join("eval/cases", f), "utf8")) as CaseFile)
+  .map(
+    (f) =>
+      JSON.parse(readFileSync(path.join("eval/cases", f), "utf8")) as CaseFile,
+  )
   .filter((c) => c.split === split)
   .filter((c) => !args.puzzle || args.puzzle.split(",").includes(c.puzzleId));
-if (caseFiles.length === 0) throw new Error(`split=${split}${args.puzzle ? ` puzzle=${args.puzzle}` : ""} の評価ケースがありません`);
+if (caseFiles.length === 0)
+  throw new Error(
+    `split=${split}${args.puzzle ? ` puzzle=${args.puzzle}` : ""} の評価ケースがありません`,
+  );
 
 const client = createJevClient();
 console.log(
@@ -87,15 +111,28 @@ console.log(
 
 for (const variant of variantNames) {
   const options = VARIANTS[variant];
-  if (!options) throw new Error(`不明な variant: ${variant}（${Object.keys(VARIANTS).join(", ")}）`);
+  if (!options)
+    throw new Error(
+      `不明な variant: ${variant}（${Object.keys(VARIANTS).join(", ")}）`,
+    );
   await runVariant(variant, options, client);
 }
 
-type QuestionResult = QuestionCase & QuestionJudgement & { puzzleId: string; correct: boolean };
-type SolutionResult = SolutionCase & SolutionJudgement & { puzzleId: string; correct: boolean };
-type Run = { questionResults: QuestionResult[]; solutionResults: SolutionResult[]; metrics: RunMetrics };
+type QuestionResult = QuestionCase &
+  QuestionJudgement & { puzzleId: string; correct: boolean };
+type SolutionResult = SolutionCase &
+  SolutionJudgement & { puzzleId: string; correct: boolean };
+type Run = {
+  questionResults: QuestionResult[];
+  solutionResults: SolutionResult[];
+  metrics: RunMetrics;
+};
 
-async function runVariant(variant: string, options: JudgeOptions, client: JevClient) {
+async function runVariant(
+  variant: string,
+  options: JudgeOptions,
+  client: JevClient,
+) {
   console.log(`=== variant: ${variant} ${JSON.stringify(options)} ===`);
 
   const runs: Run[] = [];
@@ -114,16 +151,24 @@ async function runVariant(variant: string, options: JudgeOptions, client: JevCli
   printMisses(runs);
   printCriteria(runs, variant);
 
-  const allResults = runs.flatMap((r) => [...r.questionResults, ...r.solutionResults]);
+  const allResults = runs.flatMap((r) => [
+    ...r.questionResults,
+    ...r.solutionResults,
+  ]);
   const latencies = allResults.map((r) => r.latencyMs).sort((a, b) => a - b);
-  const inputTokens = runs.flatMap((r) => r.questionResults).reduce((sum, r) => sum + (r.inputTokens ?? 0), 0);
+  const inputTokens = runs
+    .flatMap((r) => r.questionResults)
+    .reduce((sum, r) => sum + (r.inputTokens ?? 0), 0);
   console.log(
     `latency p50=${percentile(latencies, 0.5).toFixed(0)}ms p95=${percentile(latencies, 0.95).toFixed(0)}ms / ` +
       `質問判定の入力 ${inputTokens} tokens ≒ $${(inputTokens * PRICE_PER_INPUT_TOKEN).toFixed(5)}\n`,
   );
 
   mkdirSync("eval/results", { recursive: true });
-  const outPath = path.join("eval/results", `${new Date().toISOString().replace(/[:.]/g, "-")}-${split}-${variant}.json`);
+  const outPath = path.join(
+    "eval/results",
+    `${new Date().toISOString().replace(/[:.]/g, "-")}-${split}-${variant}.json`,
+  );
   const solutionOptions = { ...DEFAULT_SOLUTION_OPTIONS, lang: options.lang };
   writeFileSync(
     outPath,
@@ -151,26 +196,52 @@ async function runOnce(options: JudgeOptions, client: JevClient): Promise<Run> {
   const questionTasks = caseFiles.flatMap((file) => {
     const puzzle = mustGetPuzzle(file.puzzleId);
     return file.questions.map((c) => async (): Promise<QuestionResult> => {
-      const judgement = await judgeQuestion(client, puzzle, c.question, options);
-      return { puzzleId: file.puzzleId, ...c, ...judgement, correct: accepts(c.expected, judgement.verdict) };
+      const judgement = await judgeQuestion(
+        client,
+        puzzle,
+        c.question,
+        options,
+      );
+      return {
+        puzzleId: file.puzzleId,
+        ...c,
+        ...judgement,
+        correct: accepts(c.expected, judgement.verdict),
+      };
     });
   });
   const solutionTasks = caseFiles.flatMap((file) => {
     const puzzle = mustGetPuzzle(file.puzzleId);
     return file.solutions.map((c) => async (): Promise<SolutionResult> => {
-      const judgement = await judgeSolution(client, puzzle, c.answer, { lang: options.lang });
-      return { puzzleId: file.puzzleId, ...c, ...judgement, correct: judgement.solved === c.expectedSolved };
+      const judgement = await judgeSolution(client, puzzle, c.answer, {
+        lang: options.lang,
+      });
+      return {
+        puzzleId: file.puzzleId,
+        ...c,
+        ...judgement,
+        correct: judgement.solved === c.expectedSolved,
+      };
     });
   });
 
   const questionResults = await runPool(questionTasks, CONCURRENCY);
   const solutionResults = await runPool(solutionTasks, CONCURRENCY);
-  return { questionResults, solutionResults, metrics: computeRunMetrics(questionResults, solutionResults) };
+  return {
+    questionResults,
+    solutionResults,
+    metrics: computeRunMetrics(questionResults, solutionResults),
+  };
 }
 
 function printAccuracyByCategory(runs: Run[]) {
-  const row = (label: string, pick: (m: RunMetrics) => { n: number; correct: number } | undefined) => {
-    const ratios = runs.map((r) => pick(r.metrics)).filter((x) => x !== undefined);
+  const row = (
+    label: string,
+    pick: (m: RunMetrics) => { n: number; correct: number } | undefined,
+  ) => {
+    const ratios = runs
+      .map((r) => pick(r.metrics))
+      .filter((x) => x !== undefined);
     if (ratios.length === 0) return undefined;
     const rates = ratios.map(rate);
     return {
@@ -196,7 +267,13 @@ function printConfusion(results: QuestionResult[]) {
   const table = Object.fromEntries(
     labels.map((expected) => [
       `期待:${expected}`,
-      Object.fromEntries(labels.map((actual) => [actual, single.filter((r) => r.expected === expected && r.verdict === actual).length])),
+      Object.fromEntries(
+        labels.map((actual) => [
+          actual,
+          single.filter((r) => r.expected === expected && r.verdict === actual)
+            .length,
+        ]),
+      ),
     ]),
   );
   console.log(`混同行列（最後の回。行: 期待値 / 列: 判定）`);
@@ -206,13 +283,22 @@ function printConfusion(results: QuestionResult[]) {
 /** answer の confidence 帯ごとに、閾値を適用する前の選択が正しかった割合 */
 function printCalibration(results: QuestionResult[]) {
   const rawCorrect = (r: QuestionResult) =>
-    accepts(r.expected, ({ true: "yes", false: "no", unknown: "unknown" } as const)[r.rawChoice]);
-  const targets = results.filter((r) => r.expected !== "invalid" && r.confidence !== undefined);
+    accepts(
+      r.expected,
+      ({ true: "yes", false: "no", unknown: "unknown" } as const)[r.rawChoice],
+    );
+  const targets = results.filter(
+    (r) => r.expected !== "invalid" && r.confidence !== undefined,
+  );
   const buckets = [0, 0.5, 0.7, 0.8, 0.9, 1.0001];
   const rows = buckets.slice(0, -1).map((lo, i) => {
     const hi = buckets[i + 1];
     const rs = targets.filter((r) => r.confidence! >= lo && r.confidence! < hi);
-    return { confidence: `${lo.toFixed(1)}–${Math.min(hi, 1).toFixed(1)}`, n: rs.length, accuracy: ratioText(rs.filter(rawCorrect).length, rs.length) };
+    return {
+      confidence: `${lo.toFixed(1)}–${Math.min(hi, 1).toFixed(1)}`,
+      n: rs.length,
+      accuracy: ratioText(rs.filter(rawCorrect).length, rs.length),
+    };
   });
   console.log("確信度の較正（全回。閾値適用前の選択の正答率）");
   console.table(rows);
@@ -224,9 +310,9 @@ function printValidity(runs: Run[]) {
   console.table(
     runs.map((r, i) => ({
       run: i + 1,
-      "普通の質問の最小値": r.metrics.normalMinValid.toFixed(2),
-      "質問でない入力の最大値": r.metrics.invalidMaxValid.toFixed(2),
-      "すり抜け": r.metrics.invalidSlips,
+      普通の質問の最小値: r.metrics.normalMinValid.toFixed(2),
+      質問でない入力の最大値: r.metrics.invalidMaxValid.toFixed(2),
+      すり抜け: r.metrics.invalidSlips,
     })),
   );
 }
@@ -242,46 +328,74 @@ function printSolutions(runs: Run[]) {
   console.table(
     runs.map((r, i) => ({
       run: i + 1,
-      "誤って正解": r.metrics.falsePositives,
-      "正解にできた割合": ratioText(r.metrics.solvedRecall.correct, r.metrics.solvedRecall.n),
-      "matched の正確さ": ratioText(r.metrics.matchedAccuracy.correct, r.metrics.matchedAccuracy.n),
+      誤って正解: r.metrics.falsePositives,
+      正解にできた割合: ratioText(
+        r.metrics.solvedRecall.correct,
+        r.metrics.solvedRecall.n,
+      ),
+      "matched の正確さ": ratioText(
+        r.metrics.matchedAccuracy.correct,
+        r.metrics.matchedAccuracy.n,
+      ),
     })),
   );
 
   const last = runs.at(-1)!.solutionResults;
   console.log("正解判定の詳細（最後の回）");
   console.table(
-    SOLUTION_KINDS.flatMap((kind) => last.filter((r) => r.kind === kind)).map((r) => ({
-      puzzle: r.puzzleId,
-      kind: r.kind,
-      expected: r.expectedSolved,
-      solved: r.solved,
-      matched: r.expectedMatched === undefined ? `${r.matched}` : `${r.matched}（期待 ${r.expectedMatched}）`,
-      points: r.pointProbabilities.map((p) => p.toFixed(2)).join(" "),
-      consistent: r.consistentProbability.toFixed(2),
-      ok: r.correct && (r.expectedMatched === undefined || r.matched === r.expectedMatched) ? "" : "✗",
-      answer: r.answer.slice(0, 24),
-    })),
+    SOLUTION_KINDS.flatMap((kind) => last.filter((r) => r.kind === kind)).map(
+      (r) => ({
+        puzzle: r.puzzleId,
+        kind: r.kind,
+        expected: r.expectedSolved,
+        solved: r.solved,
+        matched:
+          r.expectedMatched === undefined
+            ? `${r.matched}`
+            : `${r.matched}（期待 ${r.expectedMatched}）`,
+        points: r.pointProbabilities.map((p) => p.toFixed(2)).join(" "),
+        consistent: r.consistentProbability.toFixed(2),
+        ok:
+          r.correct &&
+          (r.expectedMatched === undefined || r.matched === r.expectedMatched)
+            ? ""
+            : "✗",
+        answer: r.answer.slice(0, 24),
+      }),
+    ),
   );
 }
 
 /** 矛盾の問いの閾値を dev で決めるための表。記録した確率から計算し直す（Jev は呼ばない） */
 function printConsistencySweep(runs: Run[]) {
   const thresholds = [0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9];
-  const perRun = runs.map((r) => sweepConsistency(r.solutionResults, thresholds, DEFAULT_SOLUTION_OPTIONS.pointThreshold));
-  console.log(`矛盾の問いの閾値を変えた場合（全回のうち最悪の値。現在の値: ${DEFAULT_SOLUTION_OPTIONS.consistencyThreshold}）`);
+  const perRun = runs.map((r) =>
+    sweepConsistency(
+      r.solutionResults,
+      thresholds,
+      DEFAULT_SOLUTION_OPTIONS.pointThreshold,
+    ),
+  );
+  console.log(
+    `矛盾の問いの閾値を変えた場合（全回のうち最悪の値。現在の値: ${DEFAULT_SOLUTION_OPTIONS.consistencyThreshold}）`,
+  );
   console.table(
     thresholds.map((threshold, i) => ({
       threshold,
       "誤って正解（最大）": Math.max(...perRun.map((s) => s[i].falsePositives)),
-      "正解にできた割合（最小）": pct(Math.min(...perRun.map((s) => s[i].recall))),
+      "正解にできた割合（最小）": pct(
+        Math.min(...perRun.map((s) => s[i].recall)),
+      ),
     })),
   );
 }
 
 function printMisses(runs: Run[]) {
   // 同じ質問が何回外れたかをまとめる
-  const misses = new Map<string, { r: QuestionResult; count: number; verdicts: Verdict[] }>();
+  const misses = new Map<
+    string,
+    { r: QuestionResult; count: number; verdicts: Verdict[] }
+  >();
   for (const run of runs) {
     for (const r of run.questionResults.filter((x) => !x.correct)) {
       const key = `${r.puzzleId}\u0000${r.question}`;
@@ -310,7 +424,9 @@ function printMisses(runs: Run[]) {
 
 function printCriteria(runs: Run[], variant: string) {
   const criteria = checkCriteria(runs.map((r) => r.metrics));
-  console.log(`公開の判定基準（設計書 §7.3。split=${split}、variant=${variant}、${runs.length} 回のうち最悪の値）`);
+  console.log(
+    `公開の判定基準（設計書 §7.3。split=${split}、variant=${variant}、${runs.length} 回のうち最悪の値）`,
+  );
   console.table(
     criteria.map((c) => ({
       項目: c.reference ? `${c.name}（参考値）` : c.name,
@@ -319,13 +435,20 @@ function printCriteria(runs: Run[], variant: string) {
       判定: c.pass ? "✓" : c.reference ? "△" : "✗",
     })),
   );
-  console.log(`結論：${passesCriteria(criteria) ? "合格" : "不合格"}（参考値の項目は合否に使わない。設計書 D6）`);
+  console.log(
+    `結論：${passesCriteria(criteria) ? "合格" : "不合格"}（参考値の項目は合否に使わない。設計書 D6）`,
+  );
   if (variant !== "baseline" || split !== "holdout" || runs.length < 3) {
-    console.log("※ 公開の判定に使うのは、holdout・baseline・--repeat=3 の結果だけ\n");
+    console.log(
+      "※ 公開の判定に使うのは、holdout・baseline・--repeat=3 の結果だけ\n",
+    );
   }
 }
 
-async function runPool<T>(tasks: (() => Promise<T>)[], concurrency: number): Promise<T[]> {
+async function runPool<T>(
+  tasks: (() => Promise<T>)[],
+  concurrency: number,
+): Promise<T[]> {
   const results: T[] = new Array(tasks.length);
   let next = 0;
   await Promise.all(
@@ -346,7 +469,9 @@ function mustGetPuzzle(id: string) {
 }
 
 function percentile(sorted: number[], p: number) {
-  return sorted.length ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))] : 0;
+  return sorted.length
+    ? sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]
+    : 0;
 }
 
 function pct(x: number) {

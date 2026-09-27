@@ -5,7 +5,9 @@ export function Logo({ size = "sm" }: { size?: "sm" | "lg" }) {
   return (
     <div
       className={`whitespace-nowrap font-label font-bold text-gold ${
-        size === "lg" ? "text-[28px] tracking-[0.22em] sm:text-[40px] sm:tracking-[0.26em]" : "text-lg tracking-[0.24em] sm:text-[22px]"
+        size === "lg"
+          ? "text-[28px] tracking-[0.22em] sm:text-[40px] sm:tracking-[0.26em]"
+          : "text-lg tracking-[0.24em] sm:text-[22px]"
       }`}
     >
       SOUP{" "}
@@ -25,22 +27,72 @@ export function GoldDivider({ width = 360 }: { width?: number }) {
   const id = `rule${useId().replace(/[^\w-]/g, "")}`;
   const mid = width / 2;
   return (
-    <svg aria-hidden="true" width={width} height="18" viewBox={`0 0 ${width} 18`} className="max-w-full">
+    <svg
+      aria-hidden="true"
+      width={width}
+      height="18"
+      viewBox={`0 0 ${width} 18`}
+      className="max-w-full"
+    >
       {/* 高さ 0 の線には objectBoundingBox のグラデーションが塗られないので、座標で指定する */}
       <defs>
-        <linearGradient id={`${id}l`} gradientUnits="userSpaceOnUse" x1="0" x2={mid - 16} y1="0" y2="0">
+        <linearGradient
+          id={`${id}l`}
+          gradientUnits="userSpaceOnUse"
+          x1="0"
+          x2={mid - 16}
+          y1="0"
+          y2="0"
+        >
           <stop offset="0" stopColor="#8a6a2e" stopOpacity="0" />
           <stop offset="1" stopColor="#e3c47f" />
         </linearGradient>
-        <linearGradient id={`${id}r`} gradientUnits="userSpaceOnUse" x1={mid + 16} x2={width} y1="0" y2="0">
+        <linearGradient
+          id={`${id}r`}
+          gradientUnits="userSpaceOnUse"
+          x1={mid + 16}
+          x2={width}
+          y1="0"
+          y2="0"
+        >
           <stop offset="0" stopColor="#e3c47f" />
           <stop offset="1" stopColor="#8a6a2e" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <line x1="0" y1="9" x2={mid - 16} y2="9" stroke={`url(#${id}l)`} strokeWidth="1" />
-      <line x1={mid + 16} y1="9" x2={width} y2="9" stroke={`url(#${id}r)`} strokeWidth="1" />
-      <rect x={mid - 6} y="3" width="12" height="12" transform={`rotate(45 ${mid} 9)`} fill="none" stroke="#d4b26a" strokeWidth="1" />
-      <rect x={mid - 3} y="6" width="6" height="6" transform={`rotate(45 ${mid} 9)`} fill="#d4b26a" />
+      <line
+        x1="0"
+        y1="9"
+        x2={mid - 16}
+        y2="9"
+        stroke={`url(#${id}l)`}
+        strokeWidth="1"
+      />
+      <line
+        x1={mid + 16}
+        y1="9"
+        x2={width}
+        y2="9"
+        stroke={`url(#${id}r)`}
+        strokeWidth="1"
+      />
+      <rect
+        x={mid - 6}
+        y="3"
+        width="12"
+        height="12"
+        transform={`rotate(45 ${mid} 9)`}
+        fill="none"
+        stroke="#d4b26a"
+        strokeWidth="1"
+      />
+      <rect
+        x={mid - 3}
+        y="6"
+        width="6"
+        height="6"
+        transform={`rotate(45 ${mid} 9)`}
+        fill="#d4b26a"
+      />
     </svg>
   );
 }
@@ -80,7 +132,13 @@ export function Check({ className }: { className?: string }) {
 }
 
 /** いいねのハート。filled で塗る */
-export function Heart({ className, filled = false }: { className?: string; filled?: boolean }) {
+export function Heart({
+  className,
+  filled = false,
+}: {
+  className?: string;
+  filled?: boolean;
+}) {
   return (
     <svg
       aria-hidden="true"
@@ -99,7 +157,12 @@ export function Heart({ className, filled = false }: { className?: string; fille
 /** GitHub のマーク（Octicons の mark-github） */
 export function GitHubMark({ className }: { className?: string }) {
   return (
-    <svg aria-hidden="true" className={className} viewBox="0 0 16 16" fill="currentColor">
+    <svg
+      aria-hidden="true"
+      className={className}
+      viewBox="0 0 16 16"
+      fill="currentColor"
+    >
       <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
     </svg>
   );
@@ -109,7 +172,8 @@ export function GitHubMark({ className }: { className?: string }) {
 export function PrivacyNote({ className = "" }: { className?: string }) {
   return (
     <p className={`m-0 text-[12.5px] leading-relaxed text-dim ${className}`}>
-      質問は判定のため外部の AI サービスに送られます。個人情報は入力しないでください。
+      質問は判定のため外部の AI
+      サービスに送られます。個人情報は入力しないでください。
     </p>
   );
 }
@@ -118,8 +182,13 @@ export function PrivacyNote({ className = "" }: { className?: string }) {
 export function AnalyticsNote({ className = "" }: { className?: string }) {
   return (
     <p className={`m-0 text-[12.5px] leading-relaxed text-dim ${className}`}>
-      アクセス解析に Google アナリティクスを使っています（Cookie を使用。質問や回答の文章は送りません）。
-      <a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener noreferrer">
+      アクセス解析に Google アナリティクスを使っています（Cookie
+      を使用。質問や回答の文章は送りません）。
+      <a
+        href="https://policies.google.com/technologies/partner-sites?hl=ja"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         Google によるデータの使用
       </a>
     </p>

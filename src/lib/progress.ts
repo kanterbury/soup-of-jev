@@ -59,7 +59,9 @@ function parseProgress(raw: string | null): Progress | null {
   if (!raw) return null;
   try {
     const value = JSON.parse(raw) as Progress;
-    return Array.isArray(value.log) && typeof value.status === "string" ? value : null;
+    return Array.isArray(value.log) && typeof value.status === "string"
+      ? value
+      : null;
   } catch {
     return null;
   }
@@ -99,7 +101,10 @@ function subscribe(onChange: () => void) {
 }
 
 // getSnapshot は同じ内容なら同じ参照を返す必要があるので、生の文字列ごとに解析結果を覚えておく
-const parsed = new Map<string, { raw: string | null; value: Progress | null }>();
+const parsed = new Map<
+  string,
+  { raw: string | null; value: Progress | null }
+>();
 
 function snapshotOf(puzzleId: string): Progress | null {
   const raw = read(progressKey(puzzleId));

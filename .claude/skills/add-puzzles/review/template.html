@@ -1,7 +1,10 @@
 <title>Soup of Jev 期待値レビュー</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
+/>
 <style>
   :root {
     --ground: #f7f4f5;
@@ -22,8 +25,10 @@
     --v-unknown: #6d5a60;
     --v-invalid: #8a6420;
     --display: "Shippori Mincho B1", "Yu Mincho", "Hiragino Mincho ProN", serif;
-    --body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
-    --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+    --body:
+      "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+    --mono:
+      "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -68,130 +73,423 @@
     --v-invalid: #d9b46a;
   }
 
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
   body {
     background: var(--ground);
     color: var(--ink);
     font: 15px/1.7 var(--body);
     padding-inline: 16px;
   }
-  .wrap { max-width: 1040px; margin: 0 auto; padding-block: 28px 80px; }
-  h1, h2, h3 { text-wrap: balance; margin: 0; }
-  button { font: inherit; color: inherit; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding-block: 28px 80px;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+    margin: 0;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
 
-  .intro { display: grid; gap: 10px; max-width: 68ch; }
-  .intro h1 { font-family: var(--display); font-weight: 800; font-size: 28px; line-height: 1.3; }
-  .intro p { margin: 0; color: var(--muted); }
-  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); }
-  .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .swatch { width: 10px; height: 10px; border-radius: 2px; }
+  .intro {
+    display: grid;
+    gap: 10px;
+    max-width: 68ch;
+  }
+  .intro h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 1.3;
+  }
+  .intro p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
 
   .bar {
-    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
-    margin: 20px -16px 0; padding: 10px 16px;
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    margin: 20px -16px 0;
+    padding: 10px 16px;
     background: color-mix(in srgb, var(--ground) 92%, transparent);
     backdrop-filter: blur(6px);
     border-bottom: 1px solid var(--line);
-    display: grid; gap: 8px;
+    display: grid;
+    gap: 8px;
   }
-  .bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-  .status { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .status strong { color: var(--ink); }
-  .save-state { font-size: 12px; color: var(--muted); margin-left: auto; }
-  .save-state.error { color: var(--fix); }
-  .filters { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-  .filters button { border: 0; background: transparent; padding: 4px 12px; font-size: 13px; cursor: pointer; }
-  .filters button[aria-pressed="true"] { background: var(--accent); color: var(--ground); }
-  .nav { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+  .bar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+  }
+  .status {
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .status strong {
+    color: var(--ink);
+  }
+  .save-state {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .save-state.error {
+    color: var(--fix);
+  }
+  .filters {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .filters button {
+    border: 0;
+    background: transparent;
+    padding: 4px 12px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .filters button[aria-pressed="true"] {
+    background: var(--accent);
+    color: var(--ground);
+  }
+  .nav {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
   .nav a {
-    flex: none; text-decoration: none; color: var(--ink);
-    font-size: 13px; padding: 3px 10px; border: 1px solid var(--line); border-radius: 999px;
-    background: var(--surface); white-space: nowrap;
+    flex: none;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 13px;
+    padding: 3px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    white-space: nowrap;
   }
-  .nav a.done { border-color: var(--ok); color: var(--ok); }
-  .nav .count { color: var(--fix); font-weight: 700; margin-left: 4px; }
+  .nav a.done {
+    border-color: var(--ok);
+    color: var(--ok);
+  }
+  .nav .count {
+    color: var(--fix);
+    font-weight: 700;
+    margin-left: 4px;
+  }
 
-  .puzzle { margin-top: 44px; scroll-margin-top: 110px; display: grid; gap: 18px; }
-  .p-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
-  .p-head h2 { font-family: var(--display); font-weight: 800; font-size: 24px; }
-  .tag {
-    font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.04em;
-    padding: 1px 8px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted);
+  .puzzle {
+    margin-top: 44px;
+    scroll-margin-top: 110px;
+    display: grid;
+    gap: 18px;
   }
-  .tag.holdout { border-color: var(--accent); color: var(--accent); }
-  .tag.new { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
-  .done-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
-  .done-toggle input { width: 18px; height: 18px; accent-color: var(--ok); }
+  .p-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+  }
+  .p-head h2 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 24px;
+  }
+  .tag {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    padding: 1px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .tag.holdout {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tag.new {
+    background: var(--accent-soft);
+    border-color: transparent;
+    color: var(--accent);
+  }
+  .done-toggle {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .done-toggle input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--ok);
+  }
 
   .story {
-    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
-    padding: 18px 20px; display: grid; gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 18px 20px;
+    display: grid;
+    gap: 14px;
   }
-  .story h3 { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted); }
-  .story .prose { font-family: var(--display); font-weight: 600; font-size: 16px; line-height: 1.95; margin: 4px 0 0; max-width: 68ch; }
-  .story ol { margin: 4px 0 0; padding-left: 1.4em; }
-  .story ol li { padding-block: 1px; }
-  .story details summary { cursor: pointer; font-size: 13px; color: var(--muted); }
-  .story details ul { margin: 6px 0 0; padding-left: 1.2em; font-size: 14px; color: var(--muted); columns: 2 280px; column-gap: 28px; }
+  .story h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .story .prose {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.95;
+    margin: 4px 0 0;
+    max-width: 68ch;
+  }
+  .story ol {
+    margin: 4px 0 0;
+    padding-left: 1.4em;
+  }
+  .story ol li {
+    padding-block: 1px;
+  }
+  .story details summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .story details ul {
+    margin: 6px 0 0;
+    padding-left: 1.2em;
+    font-size: 14px;
+    color: var(--muted);
+    columns: 2 280px;
+    column-gap: 28px;
+  }
 
-  .section-title { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: var(--muted); display: flex; gap: 10px; align-items: baseline; }
-  .section-title small { font-weight: 400; letter-spacing: 0; }
-  .rows { display: grid; border-top: 1px solid var(--line); }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .section-title small {
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .rows {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
   .cat {
-    padding: 14px 0 4px; font-family: var(--mono); font-size: 11.5px; color: var(--muted);
-    border-bottom: 1px dashed var(--line); letter-spacing: 0.03em;
+    padding: 14px 0 4px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    border-bottom: 1px dashed var(--line);
+    letter-spacing: 0.03em;
   }
   .row {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 4px 14px; align-items: start;
-    padding: 10px 8px; border-bottom: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 4px 14px;
+    align-items: start;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
   }
-  .row.doubt { background: var(--doubt-soft); }
-  .row.fix { background: var(--fix-soft); box-shadow: inset 3px 0 0 var(--fix); }
-  .row .text { min-width: 0; overflow-wrap: anywhere; }
-  .row .why { grid-column: 1 / -1; font-size: 13px; color: var(--doubt); }
-  .row .why::before { content: "Claude の迷い："; font-weight: 700; }
-  .expected { font-size: 13px; font-weight: 700; white-space: nowrap; padding-top: 2px; }
-  .v-yes { color: var(--v-yes); } .v-no { color: var(--v-no); } .v-unknown { color: var(--v-unknown); } .v-invalid { color: var(--v-invalid); }
-  .v-true { color: var(--ok); } .v-false { color: var(--muted); }
+  .row.doubt {
+    background: var(--doubt-soft);
+  }
+  .row.fix {
+    background: var(--fix-soft);
+    box-shadow: inset 3px 0 0 var(--fix);
+  }
+  .row .text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .row .why {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    color: var(--doubt);
+  }
+  .row .why::before {
+    content: "Claude の迷い：";
+    font-weight: 700;
+  }
+  .expected {
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+  .v-yes {
+    color: var(--v-yes);
+  }
+  .v-no {
+    color: var(--v-no);
+  }
+  .v-unknown {
+    color: var(--v-unknown);
+  }
+  .v-invalid {
+    color: var(--v-invalid);
+  }
+  .v-true {
+    color: var(--ok);
+  }
+  .v-false {
+    color: var(--muted);
+  }
   .flag {
-    border: 1px solid var(--line); background: var(--surface); border-radius: 6px;
-    padding: 2px 10px; font-size: 13px; cursor: pointer; white-space: nowrap;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 6px;
+    padding: 2px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
   }
-  .flag[aria-pressed="true"] { background: var(--fix); border-color: var(--fix); color: var(--ground); }
-  .flag:disabled { opacity: 0.5; cursor: not-allowed; }
-  .note { grid-column: 1 / -1; }
+  .flag[aria-pressed="true"] {
+    background: var(--fix);
+    border-color: var(--fix);
+    color: var(--ground);
+  }
+  .flag:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .note {
+    grid-column: 1 / -1;
+  }
   .note textarea {
-    width: 100%; min-height: 56px; resize: vertical; font: 14px/1.6 var(--body); color: var(--ink);
-    background: var(--surface); border: 1px solid var(--fix); border-radius: 6px; padding: 6px 10px;
+    width: 100%;
+    min-height: 56px;
+    resize: vertical;
+    font: 14px/1.6 var(--body);
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--fix);
+    border-radius: 6px;
+    padding: 6px 10px;
   }
-  .kind { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+  .kind {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+  }
 
-  .hidden-by-filter { display: none; }
-  .empty { padding: 12px 8px; color: var(--muted); font-size: 14px; }
-  .banner { margin-top: 16px; padding: 10px 14px; border-radius: 8px; background: var(--fix-soft); color: var(--fix); font-size: 14px; }
+  .hidden-by-filter {
+    display: none;
+  }
+  .empty {
+    padding: 12px 8px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .banner {
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: var(--fix-soft);
+    color: var(--fix);
+    font-size: 14px;
+  }
 
   @media (max-width: 560px) {
-    .row { grid-template-columns: minmax(0, 1fr) auto; }
-    .row .expected { grid-column: 1; grid-row: 2; }
-    .row .flag { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
-    .done-toggle { margin-left: 0; }
+    .row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .row .expected {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .row .flag {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+    .done-toggle {
+      margin-left: 0;
+    }
   }
   @media (prefers-reduced-motion: no-preference) {
-    .row { transition: background-color 0.15s ease; }
+    .row {
+      transition: background-color 0.15s ease;
+    }
   }
 </style>
 
 <div class="wrap">
   <header class="intro">
     <h1>Soup of Jev 期待値レビュー</h1>
-    <p>公開前評価（設計書 §7.1）の評価ケースです。期待値や問題文・真相・要点がおかしいと思った行に「要修正」を付け、理由をメモしてください。何も付けていない行は、そのままで問題ないものとして扱います。問題ごとに見終えたら「レビュー済み」にチェックしてください。</p>
-    <p>黄色の行は、Claude が期待値に自信を持てていない行です。holdout（確認用）の問題は、レビューの後に一度だけ評価するので、ここで直しておく必要があります。</p>
+    <p>
+      公開前評価（設計書
+      §7.1）の評価ケースです。期待値や問題文・真相・要点がおかしいと思った行に「要修正」を付け、理由をメモしてください。何も付けていない行は、そのままで問題ないものとして扱います。問題ごとに見終えたら「レビュー済み」にチェックしてください。
+    </p>
+    <p>
+      黄色の行は、Claude
+      が期待値に自信を持てていない行です。holdout（確認用）の問題は、レビューの後に一度だけ評価するので、ここで直しておく必要があります。
+    </p>
     __INTRO__
     <div class="legend">
-      <span><i class="swatch" style="background: var(--doubt-soft); outline: 1px solid var(--doubt)"></i>Claude が迷った行</span>
-      <span><i class="swatch" style="background: var(--fix)"></i>要修正を付けた行</span>
-      <span><b class="v-yes">YES</b> / <b class="v-no">NO</b> / <b class="v-unknown">どちらとも</b> / <b class="v-invalid">質問でない</b></span>
+      <span
+        ><i
+          class="swatch"
+          style="background: var(--doubt-soft); outline: 1px solid var(--doubt)"
+        ></i
+        >Claude が迷った行</span
+      >
+      <span
+        ><i class="swatch" style="background: var(--fix)"></i
+        >要修正を付けた行</span
+      >
+      <span
+        ><b class="v-yes">YES</b> / <b class="v-no">NO</b> /
+        <b class="v-unknown">どちらとも</b> /
+        <b class="v-invalid">質問でない</b></span
+      >
     </div>
   </header>
 
@@ -201,9 +499,15 @@
     <div class="bar-row">
       <span class="status" id="status"></span>
       <div class="filters" role="group" aria-label="表示する行">
-        <button type="button" data-filter="all" aria-pressed="true">すべて</button>
-        <button type="button" data-filter="doubt" aria-pressed="false">Claude が迷った行</button>
-        <button type="button" data-filter="fix" aria-pressed="false">要修正の行</button>
+        <button type="button" data-filter="all" aria-pressed="true">
+          すべて
+        </button>
+        <button type="button" data-filter="doubt" aria-pressed="false">
+          Claude が迷った行
+        </button>
+        <button type="button" data-filter="fix" aria-pressed="false">
+          要修正の行
+        </button>
       </div>
       <span class="save-state" id="save-state">保存先に接続しています…</span>
     </div>
@@ -213,230 +517,440 @@
   <main id="puzzles"></main>
 </div>
 
-<script type="application/json" id="data">__DATA__</script>
+<script type="application/json" id="data">
+  __DATA__
+</script>
 <script>
-(() => {
-  const PUZZLES = JSON.parse(document.getElementById("data").textContent);
-  // レビューの回ごとに保存先を分け、前の回の印とメモを残す
-  const MARKS = "marks-__ROUND__";
-  const PROGRESS = "progress-__ROUND__";
-  const CAT = {
-    direct: "直接", inference: "推論", negative: "素直な否定", confirm: "確認型（〜のではないのですか）",
-    ambiguous: "両方に読める否定", compound: "複合質問", long: "長い質問", irrelevant: "無関係",
-    invalid: "質問でない入力", injection: "インジェクション",
-  };
-  const KIND = { correct: "正解", paraphrase: "言い換えた正解", partial: "部分正解", wrong: "誤答", hypotheses: "仮説の羅列", "mixed-error": "誤りの混入" };
-  const VERDICT = { yes: "YES", no: "NO", unknown: "どちらとも", invalid: "質問でない" };
+  (() => {
+    const PUZZLES = JSON.parse(document.getElementById("data").textContent);
+    // レビューの回ごとに保存先を分け、前の回の印とメモを残す
+    const MARKS = "marks-__ROUND__";
+    const PROGRESS = "progress-__ROUND__";
+    const CAT = {
+      direct: "直接",
+      inference: "推論",
+      negative: "素直な否定",
+      confirm: "確認型（〜のではないのですか）",
+      ambiguous: "両方に読める否定",
+      compound: "複合質問",
+      long: "長い質問",
+      irrelevant: "無関係",
+      invalid: "質問でない入力",
+      injection: "インジェクション",
+    };
+    const KIND = {
+      correct: "正解",
+      paraphrase: "言い換えた正解",
+      partial: "部分正解",
+      wrong: "誤答",
+      hypotheses: "仮説の羅列",
+      "mixed-error": "誤りの混入",
+    };
+    const VERDICT = {
+      yes: "YES",
+      no: "NO",
+      unknown: "どちらとも",
+      invalid: "質問でない",
+    };
 
-  const marks = new Map();   // key -> { note }
-  const done = new Map();    // puzzleId -> bool
-  const rows = new Map();    // key -> { el, flag, note, textarea, doubt }
-  let db = null;
-  let filter = "all";
+    const marks = new Map(); // key -> { note }
+    const done = new Map(); // puzzleId -> bool
+    const rows = new Map(); // key -> { el, flag, note, textarea, doubt }
+    let db = null;
+    let filter = "all";
 
-  const el = (tag, attrs = {}, ...children) => {
-    const n = document.createElement(tag);
-    for (const [k, v] of Object.entries(attrs)) {
-      if (k === "class") n.className = v;
-      else if (k === "text") n.textContent = v;
-      else n.setAttribute(k, v);
-    }
-    for (const c of children) if (c) n.append(c);
-    return n;
-  };
-
-  function expectedNode(q) {
-    if (Array.isArray(q.expected)) {
-      return el("span", { class: "expected", text: "YES / NO どちらも可" });
-    }
-    return el("span", { class: `expected v-${q.expected}`, text: VERDICT[q.expected] });
-  }
-
-  function solutionExpected(s) {
-    const t = s.expectedSolved ? "正解にする" : "不正解" + (s.expectedMatched !== undefined ? `・要点 ${s.expectedMatched} つ` : "");
-    return el("span", { class: `expected v-${s.expectedSolved}`, text: t });
-  }
-
-  function makeRow(key, meta, content, expected) {
-    const row = el("div", { class: "row" + (meta.doubt ? " doubt" : "") });
-    const flag = el("button", { type: "button", class: "flag", "aria-pressed": "false", text: "要修正", disabled: "" });
-    const textarea = el("textarea", { id: `note-${key}`, placeholder: "どう直すべきか（例：期待値は NO。真相では…）", "aria-label": "メモ" });
-    const note = el("div", { class: "note" }, textarea);
-    note.hidden = true;
-    row.append(content, expected, flag);
-    if (meta.doubt) row.append(el("div", { class: "why", text: meta.doubt }));
-    row.append(note);
-    flag.addEventListener("click", () => toggle(key, meta));
-    let timer;
-    textarea.addEventListener("input", () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => saveNote(key, meta, textarea.value), 700);
-    });
-    rows.set(key, { el: row, flag, note, textarea, doubt: !!meta.doubt, puzzleId: meta.puzzleId });
-    return row;
-  }
-
-  function render() {
-    const nav = document.getElementById("nav");
-    const main = document.getElementById("puzzles");
-    PUZZLES.forEach((p, n) => {
-      nav.append(el("a", { href: `#${p.id}`, id: `nav-${p.id}` }, `${p.title}`, el("span", { class: "count", id: `navcount-${p.id}` })));
-
-      const section = el("section", { class: "puzzle", id: p.id });
-      const doneBox = el("input", { type: "checkbox", id: `done-${p.id}`, disabled: "" });
-      doneBox.addEventListener("change", () => saveDone(p.id, doneBox.checked));
-      section.append(
-        el("div", { class: "p-head" },
-          el("h2", { text: p.title }),
-          el("span", { class: "tag" + (p.split === "holdout" ? " holdout" : ""), text: p.split === "holdout" ? "holdout（確認用）" : "dev（調整用）" }),
-          p.isNew ? el("span", { class: "tag new", text: "新作" }) : el("span", { class: "tag", text: "既存" }),
-          el("label", { class: "done-toggle", for: `done-${p.id}` }, doneBox, "レビュー済み"),
-        ),
-      );
-
-      const story = el("div", { class: "story" },
-        el("div", {}, el("h3", { text: "問題文" }), el("p", { class: "prose", text: p.problem })),
-        el("div", {}, el("h3", { text: "真相" }), el("p", { class: "prose", text: p.truth })),
-        el("div", {}, el("h3", { text: `正解判定の要点（${p.keyPoints.length} つ）` }),
-          el("ol", {}, ...p.keyPoints.map((k) => el("li", { text: k })))),
-        el("details", {}, el("summary", { text: `事実リスト（${p.facts.length} 件。質問判定に使う）` }),
-          el("ul", {}, ...p.facts.map((f) => el("li", { text: f })))),
-      );
-      const storyRows = el("div", { class: "rows" });
-      storyRows.append(makeRow(`${p.id}.p.0`, { puzzleId: p.id, target: "story", index: 0, text: "問題文・真相・要点・事実リスト", doubt: null },
-        el("span", { class: "text", text: "問題文・真相・要点・事実リストについて" }), el("span", {})));
-      section.append(story, storyRows);
-
-      section.append(el("h3", { class: "section-title" }, "質問判定", el("small", { text: `${p.questions.length} 件` })));
-      const qrows = el("div", { class: "rows" });
-      let prev;
-      for (const q of p.questions) {
-        if (q.category !== prev) qrows.append(el("div", { class: "cat", "data-cat": `${p.id}.${q.category}`, text: CAT[q.category] ?? q.category }));
-        prev = q.category;
-        qrows.append(makeRow(`${p.id}.q.${q.i}`, { puzzleId: p.id, target: "question", index: q.i, text: q.question, doubt: q.doubt },
-          el("span", { class: "text", text: q.question }), expectedNode(q)));
+    const el = (tag, attrs = {}, ...children) => {
+      const n = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (k === "class") n.className = v;
+        else if (k === "text") n.textContent = v;
+        else n.setAttribute(k, v);
       }
-      section.append(qrows);
+      for (const c of children) if (c) n.append(c);
+      return n;
+    };
 
-      section.append(el("h3", { class: "section-title" }, "正解判定", el("small", { text: `${p.solutions.length} 件` })));
-      const srows = el("div", { class: "rows" });
-      for (const s of p.solutions) {
-        srows.append(makeRow(`${p.id}.s.${s.i}`, { puzzleId: p.id, target: "solution", index: s.i, text: s.answer, doubt: s.doubt },
-          el("span", { class: "text" }, el("span", { class: "kind", text: `${KIND[s.kind] ?? s.kind}　` }), s.answer), solutionExpected(s)));
+    function expectedNode(q) {
+      if (Array.isArray(q.expected)) {
+        return el("span", { class: "expected", text: "YES / NO どちらも可" });
       }
-      section.append(srows);
-      main.append(section);
-    });
-  }
-
-  function refresh() {
-    for (const [key, r] of rows) {
-      const m = marks.get(key);
-      const flagged = !!m;
-      r.el.classList.toggle("fix", flagged);
-      r.flag.setAttribute("aria-pressed", String(flagged));
-      r.note.hidden = !flagged;
-      if (flagged && document.activeElement !== r.textarea && r.textarea.value !== (m.note ?? "")) r.textarea.value = m.note ?? "";
-      const visible = filter === "all" || (filter === "doubt" && r.doubt) || (filter === "fix" && flagged);
-      r.el.classList.toggle("hidden-by-filter", !visible);
+      return el("span", {
+        class: `expected v-${q.expected}`,
+        text: VERDICT[q.expected],
+      });
     }
-    document.querySelectorAll(".cat").forEach((c) => {
-      let n = c.nextElementSibling, any = false;
-      while (n && n.classList.contains("row")) { if (!n.classList.contains("hidden-by-filter")) any = true; n = n.nextElementSibling; }
-      c.classList.toggle("hidden-by-filter", !any);
-    });
-    let doneCount = 0;
-    for (const p of PUZZLES) {
-      const d = !!done.get(p.id);
-      if (d) doneCount++;
-      document.getElementById(`done-${p.id}`).checked = d;
-      document.getElementById(`nav-${p.id}`).classList.toggle("done", d);
-      const count = [...marks.keys()].filter((k) => k.startsWith(`${p.id}.`)).length;
-      document.getElementById(`navcount-${p.id}`).textContent = count ? `${count}` : "";
+
+    function solutionExpected(s) {
+      const t = s.expectedSolved
+        ? "正解にする"
+        : "不正解" +
+          (s.expectedMatched !== undefined
+            ? `・要点 ${s.expectedMatched} つ`
+            : "");
+      return el("span", { class: `expected v-${s.expectedSolved}`, text: t });
     }
-    const total = PUZZLES.reduce((a, p) => a + p.questions.length + p.solutions.length, 0);
-    const doubts = [...rows.values()].filter((r) => r.doubt).length;
-    document.getElementById("status").innerHTML =
-      `レビュー済み <strong>${doneCount}</strong> / ${PUZZLES.length} 問 ・ 要修正 <strong>${marks.size}</strong> 行 ・ 全 ${total} 件（Claude が迷った行 ${doubts}）`;
-  }
 
-  function setSave(text, error = false) {
-    const s = document.getElementById("save-state");
-    s.textContent = text;
-    s.classList.toggle("error", error);
-  }
-
-  async function write(fn) {
-    if (!db) return;
-    setSave("保存しています…");
-    try {
-      await fn();
-      setSave("保存しました");
-    } catch (e) {
-      setSave(`保存できませんでした（${e?.code ?? "unknown"}）。もう一度操作してください`, true);
+    function makeRow(key, meta, content, expected) {
+      const row = el("div", { class: "row" + (meta.doubt ? " doubt" : "") });
+      const flag = el("button", {
+        type: "button",
+        class: "flag",
+        "aria-pressed": "false",
+        text: "要修正",
+        disabled: "",
+      });
+      const textarea = el("textarea", {
+        id: `note-${key}`,
+        placeholder: "どう直すべきか（例：期待値は NO。真相では…）",
+        "aria-label": "メモ",
+      });
+      const note = el("div", { class: "note" }, textarea);
+      note.hidden = true;
+      row.append(content, expected, flag);
+      if (meta.doubt) row.append(el("div", { class: "why", text: meta.doubt }));
+      row.append(note);
+      flag.addEventListener("click", () => toggle(key, meta));
+      let timer;
+      textarea.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => saveNote(key, meta, textarea.value), 700);
+      });
+      rows.set(key, {
+        el: row,
+        flag,
+        note,
+        textarea,
+        doubt: !!meta.doubt,
+        puzzleId: meta.puzzleId,
+      });
+      return row;
     }
-  }
 
-  function toggle(key, meta) {
-    if (marks.has(key)) {
-      marks.delete(key);
-      refresh();
-      write(() => db.collection(MARKS).doc(key).delete());
-    } else {
-      const body = { puzzleId: meta.puzzleId, target: meta.target, index: meta.index, text: meta.text, note: "", updatedAt: new Date().toISOString() };
+    function render() {
+      const nav = document.getElementById("nav");
+      const main = document.getElementById("puzzles");
+      PUZZLES.forEach((p, n) => {
+        nav.append(
+          el(
+            "a",
+            { href: `#${p.id}`, id: `nav-${p.id}` },
+            `${p.title}`,
+            el("span", { class: "count", id: `navcount-${p.id}` }),
+          ),
+        );
+
+        const section = el("section", { class: "puzzle", id: p.id });
+        const doneBox = el("input", {
+          type: "checkbox",
+          id: `done-${p.id}`,
+          disabled: "",
+        });
+        doneBox.addEventListener("change", () =>
+          saveDone(p.id, doneBox.checked),
+        );
+        section.append(
+          el(
+            "div",
+            { class: "p-head" },
+            el("h2", { text: p.title }),
+            el("span", {
+              class: "tag" + (p.split === "holdout" ? " holdout" : ""),
+              text:
+                p.split === "holdout" ? "holdout（確認用）" : "dev（調整用）",
+            }),
+            p.isNew
+              ? el("span", { class: "tag new", text: "新作" })
+              : el("span", { class: "tag", text: "既存" }),
+            el(
+              "label",
+              { class: "done-toggle", for: `done-${p.id}` },
+              doneBox,
+              "レビュー済み",
+            ),
+          ),
+        );
+
+        const story = el(
+          "div",
+          { class: "story" },
+          el(
+            "div",
+            {},
+            el("h3", { text: "問題文" }),
+            el("p", { class: "prose", text: p.problem }),
+          ),
+          el(
+            "div",
+            {},
+            el("h3", { text: "真相" }),
+            el("p", { class: "prose", text: p.truth }),
+          ),
+          el(
+            "div",
+            {},
+            el("h3", { text: `正解判定の要点（${p.keyPoints.length} つ）` }),
+            el("ol", {}, ...p.keyPoints.map((k) => el("li", { text: k }))),
+          ),
+          el(
+            "details",
+            {},
+            el("summary", {
+              text: `事実リスト（${p.facts.length} 件。質問判定に使う）`,
+            }),
+            el("ul", {}, ...p.facts.map((f) => el("li", { text: f }))),
+          ),
+        );
+        const storyRows = el("div", { class: "rows" });
+        storyRows.append(
+          makeRow(
+            `${p.id}.p.0`,
+            {
+              puzzleId: p.id,
+              target: "story",
+              index: 0,
+              text: "問題文・真相・要点・事実リスト",
+              doubt: null,
+            },
+            el("span", {
+              class: "text",
+              text: "問題文・真相・要点・事実リストについて",
+            }),
+            el("span", {}),
+          ),
+        );
+        section.append(story, storyRows);
+
+        section.append(
+          el(
+            "h3",
+            { class: "section-title" },
+            "質問判定",
+            el("small", { text: `${p.questions.length} 件` }),
+          ),
+        );
+        const qrows = el("div", { class: "rows" });
+        let prev;
+        for (const q of p.questions) {
+          if (q.category !== prev)
+            qrows.append(
+              el("div", {
+                class: "cat",
+                "data-cat": `${p.id}.${q.category}`,
+                text: CAT[q.category] ?? q.category,
+              }),
+            );
+          prev = q.category;
+          qrows.append(
+            makeRow(
+              `${p.id}.q.${q.i}`,
+              {
+                puzzleId: p.id,
+                target: "question",
+                index: q.i,
+                text: q.question,
+                doubt: q.doubt,
+              },
+              el("span", { class: "text", text: q.question }),
+              expectedNode(q),
+            ),
+          );
+        }
+        section.append(qrows);
+
+        section.append(
+          el(
+            "h3",
+            { class: "section-title" },
+            "正解判定",
+            el("small", { text: `${p.solutions.length} 件` }),
+          ),
+        );
+        const srows = el("div", { class: "rows" });
+        for (const s of p.solutions) {
+          srows.append(
+            makeRow(
+              `${p.id}.s.${s.i}`,
+              {
+                puzzleId: p.id,
+                target: "solution",
+                index: s.i,
+                text: s.answer,
+                doubt: s.doubt,
+              },
+              el(
+                "span",
+                { class: "text" },
+                el("span", {
+                  class: "kind",
+                  text: `${KIND[s.kind] ?? s.kind}　`,
+                }),
+                s.answer,
+              ),
+              solutionExpected(s),
+            ),
+          );
+        }
+        section.append(srows);
+        main.append(section);
+      });
+    }
+
+    function refresh() {
+      for (const [key, r] of rows) {
+        const m = marks.get(key);
+        const flagged = !!m;
+        r.el.classList.toggle("fix", flagged);
+        r.flag.setAttribute("aria-pressed", String(flagged));
+        r.note.hidden = !flagged;
+        if (
+          flagged &&
+          document.activeElement !== r.textarea &&
+          r.textarea.value !== (m.note ?? "")
+        )
+          r.textarea.value = m.note ?? "";
+        const visible =
+          filter === "all" ||
+          (filter === "doubt" && r.doubt) ||
+          (filter === "fix" && flagged);
+        r.el.classList.toggle("hidden-by-filter", !visible);
+      }
+      document.querySelectorAll(".cat").forEach((c) => {
+        let n = c.nextElementSibling,
+          any = false;
+        while (n && n.classList.contains("row")) {
+          if (!n.classList.contains("hidden-by-filter")) any = true;
+          n = n.nextElementSibling;
+        }
+        c.classList.toggle("hidden-by-filter", !any);
+      });
+      let doneCount = 0;
+      for (const p of PUZZLES) {
+        const d = !!done.get(p.id);
+        if (d) doneCount++;
+        document.getElementById(`done-${p.id}`).checked = d;
+        document.getElementById(`nav-${p.id}`).classList.toggle("done", d);
+        const count = [...marks.keys()].filter((k) =>
+          k.startsWith(`${p.id}.`),
+        ).length;
+        document.getElementById(`navcount-${p.id}`).textContent = count
+          ? `${count}`
+          : "";
+      }
+      const total = PUZZLES.reduce(
+        (a, p) => a + p.questions.length + p.solutions.length,
+        0,
+      );
+      const doubts = [...rows.values()].filter((r) => r.doubt).length;
+      document.getElementById("status").innerHTML =
+        `レビュー済み <strong>${doneCount}</strong> / ${PUZZLES.length} 問 ・ 要修正 <strong>${marks.size}</strong> 行 ・ 全 ${total} 件（Claude が迷った行 ${doubts}）`;
+    }
+
+    function setSave(text, error = false) {
+      const s = document.getElementById("save-state");
+      s.textContent = text;
+      s.classList.toggle("error", error);
+    }
+
+    async function write(fn) {
+      if (!db) return;
+      setSave("保存しています…");
+      try {
+        await fn();
+        setSave("保存しました");
+      } catch (e) {
+        setSave(
+          `保存できませんでした（${e?.code ?? "unknown"}）。もう一度操作してください`,
+          true,
+        );
+      }
+    }
+
+    function toggle(key, meta) {
+      if (marks.has(key)) {
+        marks.delete(key);
+        refresh();
+        write(() => db.collection(MARKS).doc(key).delete());
+      } else {
+        const body = {
+          puzzleId: meta.puzzleId,
+          target: meta.target,
+          index: meta.index,
+          text: meta.text,
+          note: "",
+          updatedAt: new Date().toISOString(),
+        };
+        marks.set(key, body);
+        refresh();
+        rows.get(key).textarea.focus();
+        write(() => db.collection(MARKS).doc(key).set(body));
+      }
+    }
+
+    function saveNote(key, meta, note) {
+      if (!marks.has(key)) return;
+      const body = {
+        ...marks.get(key),
+        note,
+        updatedAt: new Date().toISOString(),
+      };
       marks.set(key, body);
-      refresh();
-      rows.get(key).textarea.focus();
       write(() => db.collection(MARKS).doc(key).set(body));
     }
-  }
 
-  function saveNote(key, meta, note) {
-    if (!marks.has(key)) return;
-    const body = { ...marks.get(key), note, updatedAt: new Date().toISOString() };
-    marks.set(key, body);
-    write(() => db.collection(MARKS).doc(key).set(body));
-  }
-
-  function saveDone(puzzleId, value) {
-    done.set(puzzleId, value);
-    refresh();
-    write(() => db.collection(PROGRESS).doc(puzzleId).set({ done: value, updatedAt: new Date().toISOString() }));
-  }
-
-  document.querySelectorAll("[data-filter]").forEach((b) =>
-    b.addEventListener("click", () => {
-      filter = b.dataset.filter;
-      document.querySelectorAll("[data-filter]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    function saveDone(puzzleId, value) {
+      done.set(puzzleId, value);
       refresh();
-    }),
-  );
-
-  render();
-  refresh();
-
-  (async () => {
-    db = await window.claude?.use?.("db");
-    if (!db) {
-      setSave("保存先に接続できません", true);
-      const b = document.getElementById("banner");
-      b.hidden = false;
-      b.textContent = "この表示ではレビュー結果を保存できません。claude.ai にサインインした状態でページを開き直してください。内容を見ることはできます。";
-      return;
+      write(() =>
+        db
+          .collection(PROGRESS)
+          .doc(puzzleId)
+          .set({ done: value, updatedAt: new Date().toISOString() }),
+      );
     }
-    document.querySelectorAll(".flag, .done-toggle input").forEach((x) => x.removeAttribute("disabled"));
-    setSave("保存先に接続しました");
-    const onError = (e) => setSave(`読み込みに失敗しました（${e?.code ?? "unknown"}）。ページを開き直してください`, true);
-    db.collection(MARKS).onSnapshot((snap) => {
-      marks.clear();
-      for (const d of snap.docs) if (d.exists) marks.set(d.id, d.data());
-      refresh();
-    }, onError);
-    db.collection(PROGRESS).onSnapshot((snap) => {
-      done.clear();
-      for (const d of snap.docs) if (d.exists) done.set(d.id, !!d.data().done);
-      refresh();
-    }, onError);
+
+    document.querySelectorAll("[data-filter]").forEach((b) =>
+      b.addEventListener("click", () => {
+        filter = b.dataset.filter;
+        document
+          .querySelectorAll("[data-filter]")
+          .forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+        refresh();
+      }),
+    );
+
+    render();
+    refresh();
+
+    (async () => {
+      db = await window.claude?.use?.("db");
+      if (!db) {
+        setSave("保存先に接続できません", true);
+        const b = document.getElementById("banner");
+        b.hidden = false;
+        b.textContent =
+          "この表示ではレビュー結果を保存できません。claude.ai にサインインした状態でページを開き直してください。内容を見ることはできます。";
+        return;
+      }
+      document
+        .querySelectorAll(".flag, .done-toggle input")
+        .forEach((x) => x.removeAttribute("disabled"));
+      setSave("保存先に接続しました");
+      const onError = (e) =>
+        setSave(
+          `読み込みに失敗しました（${e?.code ?? "unknown"}）。ページを開き直してください`,
+          true,
+        );
+      db.collection(MARKS).onSnapshot((snap) => {
+        marks.clear();
+        for (const d of snap.docs) if (d.exists) marks.set(d.id, d.data());
+        refresh();
+      }, onError);
+      db.collection(PROGRESS).onSnapshot((snap) => {
+        done.clear();
+        for (const d of snap.docs)
+          if (d.exists) done.set(d.id, !!d.data().done);
+        refresh();
+      }, onError);
+    })();
   })();
-})();
 </script>

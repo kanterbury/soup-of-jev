@@ -59,10 +59,14 @@ export function useLikeCounts(): Counts | null | undefined {
  * いいねを押す（liked: true）か取り消す。表示を先に変え、保存に失敗したら元に戻す。
  * 失敗したときはエラーの文言を返す。
  */
-export async function toggleLike(puzzleId: string, liked: boolean): Promise<string | undefined> {
+export async function toggleLike(
+  puzzleId: string,
+  liked: boolean,
+): Promise<string | undefined> {
   const before = counts?.[puzzleId];
   setLiked(puzzleId, liked);
-  if (before !== undefined) setCount(puzzleId, Math.max(0, before + (liked ? 1 : -1)));
+  if (before !== undefined)
+    setCount(puzzleId, Math.max(0, before + (liked ? 1 : -1)));
   try {
     const res = await fetch("/api/likes", {
       method: "POST",
@@ -70,12 +74,19 @@ export async function toggleLike(puzzleId: string, liked: boolean): Promise<stri
       body: JSON.stringify({ puzzleId, liked }),
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(typeof json.error === "string" ? json.error : "いいねの保存に失敗しました");
+    if (!res.ok)
+      throw new Error(
+        typeof json.error === "string"
+          ? json.error
+          : "いいねの保存に失敗しました",
+      );
     setCount(puzzleId, json.count);
     return undefined;
   } catch (e) {
     setLiked(puzzleId, !liked);
     if (before !== undefined) setCount(puzzleId, before);
-    return e instanceof TypeError ? "通信に失敗しました。もう一度押してください" : (e as Error).message;
+    return e instanceof TypeError
+      ? "通信に失敗しました。もう一度押してください"
+      : (e as Error).message;
   }
 }
