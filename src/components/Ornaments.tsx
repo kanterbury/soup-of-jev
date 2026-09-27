@@ -113,3 +113,15 @@ export function PrivacyNote({ className = "" }: { className?: string }) {
     </p>
   );
 }
+
+/** アクセス解析の利用の明記（設計書 D10。Google アナリティクスの利用規約の要件） */
+export function AnalyticsNote({ className = "" }: { className?: string }) {
+  return (
+    <p className={`m-0 text-[12.5px] leading-relaxed text-dim ${className}`}>
+      アクセス解析に Google アナリティクスを使っています（Cookie を使用。質問や回答の文章は送りません）。
+      <a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener noreferrer">
+        Google によるデータの使用
+      </a>
+    </p>
+  );
+}

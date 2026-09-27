@@ -6,6 +6,7 @@ import { LikeButton } from "@/components/LikeButton";
 import { ChevronLeft, Logo, PrivacyNote } from "@/components/Ornaments";
 import { TruthCard } from "@/components/TruthCard";
 import { VerdictLabel } from "@/components/VerdictLabel";
+import { track } from "@/lib/analytics";
 import type { Verdict } from "@/lib/judge";
 import { clearProgress, loadProgress, markHowtoSeen, saveProgress, useHowtoSeen, useProgress, type Progress } from "@/lib/progress";
 import type { PublicPuzzle } from "@/lib/puzzles";
@@ -59,13 +60,16 @@ export function PlayView({ puzzle, number }: { puzzle: PublicPuzzle; number: num
       return;
     }
     revealDialog.current?.close();
-    saveProgress(puzzle.id, { ...latest(puzzle.id), status: "gave-up", truth: result.data.truth });
+    const current = latest(puzzle.id);
+    saveProgress(puzzle.id, { ...current, status: "gave-up", truth: result.data.truth });
+    track({ name: "reveal", params: { puzzle_id: puzzle.id, question_count: current.log.length } });
     window.scrollTo({ top: 0 });
   }
 
   function restart() {
     restartDialog.current?.close();
     clearProgress(puzzle.id);
+    track({ name: "restart", params: { puzzle_id: puzzle.id } });
     setShowLog(false);
     window.scrollTo({ top: 0 });
   }
@@ -284,6 +288,7 @@ function QuestionsPanel({ puzzleId, log, howtoSeen }: { puzzleId: string; log: P
     }
     const current = latest(puzzleId);
     saveProgress(puzzleId, { ...current, log: [...current.log, { question: trimmed, verdict: result.data.verdict }] });
+    track({ name: "ask", params: { puzzle_id: puzzleId, verdict: result.data.verdict, question_number: current.log.length + 1 } });
     setQuestion("");
     inputRef.current?.focus();
   }
@@ -357,6 +362,8 @@ function AnswerPanel({ puzzleId }: { puzzleId: string }) {
   const [solving, setSolving] = useState(false);
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<{ matched: number; total: number }>();
+  // 回答を送った回数（計測用。保存しないので、再読み込みで 0 に戻る）
+  const attempts = useRef(0);
   const trimmed = answer.trim();
   const canSend = !solving && trimmed.length > 0 && trimmed.length <= MAX_ANSWER_LENGTH;
 
@@ -375,8 +382,13 @@ function AnswerPanel({ puzzleId }: { puzzleId: string }) {
       setError(res.error);
       return;
     }
-    if (res.data.solved && res.data.truth) {
-      saveProgress(puzzleId, { ...latest(puzzleId), status: "solved", truth: res.data.truth });
+    attempts.current += 1;
+    const current = latest(puzzleId);
+    const { solved, matched, total } = res.data;
+    track({ name: "solve_attempt", params: { puzzle_id: puzzleId, solved, matched, total, question_count: current.log.length } });
+    if (solved && res.data.truth) {
+      track({ name: "puzzle_solved", params: { puzzle_id: puzzleId, question_count: current.log.length, attempt_count: attempts.current } });
+      saveProgress(puzzleId, { ...current, status: "solved", truth: res.data.truth });
       window.scrollTo({ top: 0 });
       return;
     }

@@ -1,0 +1,70 @@
+# アクセス解析（Google Analytics 4）
+
+*作成日：2026-09-27／設計書 `docs/app-design.md` の D10 の詳細*
+
+どれだけ遊ばれているか、どの問題で真相にたどり着けているかを知るために、Google Analytics 4（GA4）を使う。
+ページビューに加えて、プレイ中の操作をイベントとして問題ごとに数える。
+
+---
+
+## 1. 方針
+
+- **質問文・回答文は送らない**：こちらのサービスでは質問を記録しない（設計書 Q5）。この方針を GA にも当てはめる。送るのは問題 ID・判定・数だけにする。
+  - 自由入力の文字列が紛れ込まないよう、送る値は `src/lib/analytics.ts` の型（`AnalyticsEvent`）で縛る。
+- **本番だけで計測する**：測定 ID `NEXT_PUBLIC_GA_MEASUREMENT_ID` が空なら、GA のスクリプトを読み込まず、イベントも送らない。Vercel では Production にだけ設定し、開発・Preview では計測しない。
+- **公開先に依存しない**：読み込みには `@next/third-parties/google` を使う。Next.js の機能なので、Cloudflare Workers に移しても動く（設計書 §7.4）。
+
+## 2. 送るイベント
+
+| イベント名 | 引数 | 送るとき |
+|---|---|---|
+| `ask` | `puzzle_id`、`verdict`、`question_number` | 質問に判定が返ったとき |
+| `solve_attempt` | `puzzle_id`、`solved`、`matched`、`total`、`question_count` | 回答の判定が返ったとき（正解・不正解とも） |
+| `puzzle_solved` | `puzzle_id`、`question_count`、`attempt_count` | 回答が正解で、真相にたどり着いたとき |
+| `reveal` | `puzzle_id`、`question_count` | あきらめて真相を見たとき |
+| `restart` | `puzzle_id` | やり直したとき |
+| `like` | `puzzle_id`、`liked`（押した／取り消した） | いいねを押したとき・取り消したとき（保存に成功したときだけ） |
+
+- `verdict` は `/api/ask` が返す判定（`yes`・`no`・`unknown`・`invalid`）をそのまま送る。`unknown` は「どちらともいえない」、`invalid` は「言い直してください」。内部の `irrelevant` と `uncertain`（設計書 Q3）は API が返さないので、GA でも区別しない。
+- `question_count` は、その時点までに質問した数。
+- `attempt_count` は、回答を送った回数。画面の中だけで数え、保存しないので、ページを読み込み直すと 0 に戻る。
+- ページビューと、スクロールなどの自動計測は、GA4 の拡張計測で取る。App Router のページ遷移も、履歴の変更として数えられる。
+
+## 3. 見たい数字
+
+| 数字 | 出し方 |
+|---|---|
+| 問題ごとの遊ばれ方 | 問題のページのページビューと、`ask` の件数 |
+| 真相にたどり着いた割合 | 問題ごとの `puzzle_solved` と `reveal` の件数を比べる |
+| 真相にたどり着くまでの手間 | `puzzle_solved` の `question_count`（質問数）と `attempt_count`（回答の回数） |
+| 判定の出方 | `ask` の `verdict` の内訳。`invalid`・`unknown` が多い問題は、問題文や真相の書き方を見直す候補になる |
+| 回答の惜しさ | `solve_attempt` の `matched` / `total` |
+
+## 4. Cookie と利用の明記
+
+- GA4 は Cookie を使う。GA の利用規約に従い、問題一覧のページ下部に、GA を使っていることと、Google のポリシー（「Google によるデータの使用」）へのリンクを置く（`AnalyticsNote`、`src/components/Ornaments.tsx`）。
+- **同意バナーは置かない**。
+  - 日本の電気通信事業法の外部送信規律は、個人・非商用のサイトはおそらく対象外で、対象でも通知・公表で足りる。
+  - 個人情報保護法の「個人関連情報」の同意は、受け取る側が個人データとして使う場合の話で、GA の既定の使い方では当てはまらない。
+  - EU（EEA）からの訪問は、EU の規則では同意が要る。日本語だけで EU の利用者に向けていないので、許容する。
+  - 法律の専門家の確認は受けていない。商用化するときや、海外の利用者に向けるときは見直す。
+
+## 5. GA 側の設定
+
+| 設定 | 値 | 理由 |
+|---|---|---|
+| Google シグナル | 無効 | Google アカウントとの結び付けを使わない |
+| データ保持期間 | 2 か月 | 集計レポートには影響せず、個別のデータを長く残さない |
+| 拡張計測 | 有効 | ページビュー（ページ遷移を含む）とスクロールを取る |
+| キーイベント | `puzzle_solved` | 真相にたどり着いた数を目立たせる |
+| カスタムディメンション | `puzzle_id`、`verdict` | レポートで問題ごと・判定ごとに分ける |
+| カスタム指標 | `question_count` | 真相にたどり着くまでの質問数を見る |
+
+設定の手順は `README.md` の「公開（Vercel）」にある。
+
+## 6. 開発中の確かめ方
+
+1. `.env.local` に測定 ID を入れて `npm run dev` を起動する。
+2. ブラウザの開発者ツールで、`google-analytics.com/g/collect` への送信があることと、質問文・回答文が含まれないことを確かめる。
+3. GA の「リアルタイム」か「DebugView」で、イベントが届いたことを確かめる。
+4. 終わったら、`.env.local` の測定 ID を空に戻す。localhost での操作も GA のレポートに混ざるため。

@@ -1,5 +1,7 @@
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { gaMeasurementId } from "@/lib/analytics";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,6 +15,7 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const gaId = gaMeasurementId();
   return (
     <html lang="ja">
       <head>
@@ -28,6 +31,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Backdrop />
         <div className="relative">{children}</div>
       </body>
+      {/* アクセス解析（設計書 D10）。測定 ID があるとき（本番）だけ読み込む */}
+      {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
 }

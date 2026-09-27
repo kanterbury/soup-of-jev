@@ -13,6 +13,7 @@
     "eval": "tsx eval/run.ts"
   },
   "dependencies": {
+    "@next/third-parties": "^16.3.6",
     "@tailwindcss/postcss": "^4.3.3",
     "@upstash/redis": "^1.39.0",
     "ai": "^7.0.108",
