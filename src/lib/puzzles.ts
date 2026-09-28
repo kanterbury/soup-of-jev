@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-/** サーバー側だけで扱う完全な問題データ。truth / facts / keyPoints はクライアントに渡さない。 */
+/** サーバー側だけで扱う完全な問題データ。truth / facts / keyPoints / hints はクライアントに渡さない。 */
 export type Puzzle = {
   id: string;
   /** 一覧に出す固定の番号（No.）。追加した順に振る */
@@ -15,10 +15,17 @@ export type Puzzle = {
   facts: string[];
   /** 正解判定に使う、真相の要点 */
   keyPoints: string[];
+  /** 段階的なヒント（設計書 D11）。1 つずつ /api/hint で返す */
+  hints: string[];
 };
 
-/** クライアントに返してよい項目だけ */
-export type PublicPuzzle = Pick<Puzzle, "id" | "number" | "title" | "problem">;
+/** クライアントに返してよい項目だけ。ヒントは本文を渡さず、数だけにする */
+export type PublicPuzzle = Pick<
+  Puzzle,
+  "id" | "number" | "title" | "problem"
+> & {
+  hintCount: number;
+};
 
 const PUZZLE_DIR = path.join(process.cwd(), "data", "puzzles");
 
@@ -48,6 +55,12 @@ export function listPublicPuzzles(): PublicPuzzle[] {
     .map(toPublic);
 }
 
-export function toPublic({ id, number, title, problem }: Puzzle): PublicPuzzle {
-  return { id, number, title, problem };
+export function toPublic({
+  id,
+  number,
+  title,
+  problem,
+  hints,
+}: Puzzle): PublicPuzzle {
+  return { id, number, title, problem, hintCount: hints.length };
 }

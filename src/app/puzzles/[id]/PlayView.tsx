@@ -192,6 +192,7 @@ export function PlayView({
           puzzle={puzzle}
           number={number}
           log={log}
+          hints={progress?.hints ?? []}
           howtoSeen={howtoSeen}
           onRevealClick={() => {
             setRevealError(undefined);
@@ -222,12 +223,14 @@ function PlayingView({
   puzzle,
   number,
   log,
+  hints,
   howtoSeen,
   onRevealClick,
 }: {
   puzzle: PublicPuzzle;
   number: number;
   log: Progress["log"];
+  hints: string[];
   howtoSeen: boolean;
   onRevealClick: () => void;
 }) {
@@ -260,6 +263,14 @@ function PlayingView({
             {problemExpanded ? "閉じる" : "問題の全文"}
           </button>
         </section>
+
+        {puzzle.hintCount > 0 && (
+          <HintPanel
+            puzzleId={puzzle.id}
+            hints={hints}
+            hintCount={puzzle.hintCount}
+          />
+        )}
 
         <button
           type="button"
@@ -479,6 +490,108 @@ function QuestionsPanel({
         </div>
         <PrivacyNote className="text-xs" />
       </form>
+    </section>
+  );
+}
+
+/** 開いたヒントの一覧と、次のヒントを開くボタン（設計書 D11） */
+function HintPanel({
+  puzzleId,
+  hints,
+  hintCount,
+}: {
+  puzzleId: string;
+  hints: string[];
+  hintCount: number;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [opening, setOpening] = useState(false);
+  const [error, setError] = useState<string>();
+  const next = hints.length + 1;
+
+  async function openHint() {
+    if (opening) return;
+    // 別のタブで開いた分と食い違わないよう、番号は最新の保存内容から決める
+    const index = latest(puzzleId).hints?.length ?? 0;
+    if (index >= hintCount) {
+      dialog.current?.close();
+      return;
+    }
+    setOpening(true);
+    setError(undefined);
+    const result = await postJson<{ hint: string }>("/api/hint", {
+      puzzleId,
+      index,
+    });
+    setOpening(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    dialog.current?.close();
+    const current = latest(puzzleId);
+    const opened = current.hints ?? [];
+    // 待っている間に別のタブで同じヒントを開いていたら、足さない
+    if (opened.length !== index) return;
+    saveProgress(puzzleId, {
+      ...current,
+      hints: [...opened, result.data.hint],
+    });
+    track({
+      name: "hint",
+      params: {
+        puzzle_id: puzzleId,
+        hint_number: index + 1,
+        question_count: current.log.length,
+      },
+    });
+  }
+
+  return (
+    <section className="flex flex-col gap-3 border border-gold/35 bg-[rgb(26_3_9/0.45)] px-4 py-3.5 sm:px-6 sm:py-[18px]">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="label-caps m-0 text-gold">HINTS</h2>
+        <span className="font-label text-xs tracking-[0.06em] text-dim">
+          {hints.length} / {hintCount}
+        </span>
+      </div>
+      {hints.length > 0 && (
+        <ol className="m-0 flex list-none flex-col gap-2.5 p-0">
+          {hints.map((hint, i) => (
+            <li
+              key={i}
+              className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-3 border-t border-gold/16 pt-2.5"
+            >
+              <span className="font-label text-sm font-semibold tracking-[0.12em] text-gold-muted">
+                {i + 1}
+              </span>
+              <span className="text-sm leading-relaxed break-words text-ivory sm:text-[15px]">
+                {hint}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+      {hints.length < hintCount && (
+        <button
+          type="button"
+          className="btn-secondary self-start text-sm"
+          onClick={() => {
+            setError(undefined);
+            dialog.current?.showModal();
+          }}
+        >
+          ヒント {next} を見る
+        </button>
+      )}
+      <ConfirmDialog
+        dialogRef={dialog}
+        message={`ヒント ${next} を見ますか？（ヒントは全部で ${hintCount} つです）`}
+        confirmLabel={opening ? "読み込み中…" : "見る"}
+        busy={opening}
+        error={error}
+        onConfirm={openHint}
+      />
     </section>
   );
 }

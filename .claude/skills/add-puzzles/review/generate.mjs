@@ -59,6 +59,7 @@ const puzzles = ids.map((id) => {
     truth: p.truth,
     facts: p.facts,
     keyPoints: p.keyPoints,
+    hints: p.hints ?? [],
     questions: c.questions.map((q, i) => ({
       i,
       ...q,

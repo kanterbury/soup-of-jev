@@ -16,6 +16,7 @@ const puzzle: Puzzle = {
   truth: "真相",
   facts: ["事実1", "事実2"],
   keyPoints: ["要点1", "要点2", "要点3"],
+  hints: ["ヒント1", "ヒント2", "ヒント3"],
 };
 
 /** 渡された state と questions を記録し、決まった回答を返す偽の JevClient */

@@ -28,6 +28,14 @@ export type AnalyticsEvent =
         attempt_count: number;
       };
     }
+  | {
+      name: "hint";
+      params: {
+        puzzle_id: string;
+        hint_number: number;
+        question_count: number;
+      };
+    }
   | { name: "reveal"; params: { puzzle_id: string; question_count: number } }
   | { name: "restart"; params: { puzzle_id: string } }
   | { name: "like"; params: { puzzle_id: string; liked: boolean } };

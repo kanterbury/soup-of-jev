@@ -5,6 +5,7 @@
  *
  * 問題データ（data/puzzles）
  * - 必須項目がそろっている
+ * - ヒント（hints）がちょうど 3 つある
  * - id とファイル名が一致する
  * - number（一覧の固定の番号）が正の整数で、問題の間で重ならない
  * - 問題ごとに評価ケース（eval/cases/<id>.json）がある
@@ -22,6 +23,8 @@ import { CATEGORIES, SOLUTION_KINDS } from "../eval/metrics";
 const PUZZLE_DIR = path.join("data", "puzzles");
 const CASE_DIR = path.join("eval", "cases");
 const VERDICTS = ["yes", "no", "unknown", "invalid"];
+/** 問題ごとのヒントの数（設計書 D11） */
+const HINT_COUNT = 3;
 
 const isNonEmptyString = (v: unknown): v is string =>
   typeof v === "string" && v.trim() !== "";
@@ -52,10 +55,13 @@ for (const file of files) {
     if (!isNonEmptyString(puzzle[key]))
       errors.push(`${where}: ${key} は空でない文字列にしてください`);
   }
-  for (const key of ["facts", "keyPoints"]) {
+  for (const key of ["facts", "keyPoints", "hints"]) {
     if (!isNonEmptyStringArray(puzzle[key]))
       errors.push(`${where}: ${key} は空でない文字列の配列にしてください`);
   }
+
+  if (Array.isArray(puzzle.hints) && puzzle.hints.length !== HINT_COUNT)
+    errors.push(`${where}: hints は ${HINT_COUNT} つにしてください`);
 
   const number = puzzle.number;
   if (typeof number !== "number" || !Number.isInteger(number) || number < 1) {

@@ -692,6 +692,12 @@
             el("ol", {}, ...p.keyPoints.map((k) => el("li", { text: k }))),
           ),
           el(
+            "div",
+            {},
+            el("h3", { text: `ヒント（${p.hints.length} つ。この順に開く）` }),
+            el("ol", {}, ...p.hints.map((h) => el("li", { text: h }))),
+          ),
+          el(
             "details",
             {},
             el("summary", {

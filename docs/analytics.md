@@ -16,14 +16,15 @@ _作成日：2026-09-27／設計書 `docs/app-design.md` の D10 の詳細_
 
 ## 2. 送るイベント
 
-| イベント名      | 引数                                                        | 送るとき                                                     |
-| --------------- | ----------------------------------------------------------- | ------------------------------------------------------------ |
-| `ask`           | `puzzle_id`、`verdict`、`question_number`                   | 質問に判定が返ったとき                                       |
-| `solve_attempt` | `puzzle_id`、`solved`、`matched`、`total`、`question_count` | 回答の判定が返ったとき（正解・不正解とも）                   |
-| `puzzle_solved` | `puzzle_id`、`question_count`、`attempt_count`              | 回答が正解で、真相にたどり着いたとき                         |
-| `reveal`        | `puzzle_id`、`question_count`                               | あきらめて真相を見たとき                                     |
-| `restart`       | `puzzle_id`                                                 | やり直したとき                                               |
-| `like`          | `puzzle_id`、`liked`（押した／取り消した）                  | いいねを押したとき・取り消したとき（保存に成功したときだけ） |
+| イベント名      | 引数                                                        | 送るとき                                                        |
+| --------------- | ----------------------------------------------------------- | --------------------------------------------------------------- |
+| `ask`           | `puzzle_id`、`verdict`、`question_number`                   | 質問に判定が返ったとき                                          |
+| `solve_attempt` | `puzzle_id`、`solved`、`matched`、`total`、`question_count` | 回答の判定が返ったとき（正解・不正解とも）                      |
+| `puzzle_solved` | `puzzle_id`、`question_count`、`attempt_count`              | 回答が正解で、真相にたどり着いたとき                            |
+| `hint`          | `puzzle_id`、`hint_number`、`question_count`                | ヒントを開いたとき（`hint_number` は 1 から数える。設計書 D11） |
+| `reveal`        | `puzzle_id`、`question_count`                               | あきらめて真相を見たとき                                        |
+| `restart`       | `puzzle_id`                                                 | やり直したとき                                                  |
+| `like`          | `puzzle_id`、`liked`（押した／取り消した）                  | いいねを押したとき・取り消したとき（保存に成功したときだけ）    |
 
 - `verdict` は `/api/ask` が返す判定（`yes`・`no`・`unknown`・`invalid`）をそのまま送る。`unknown` は「どちらともいえない」、`invalid` は「言い直してください」。内部の `irrelevant` と `uncertain`（設計書 Q3）は API が返さないので、GA でも区別しない。
 - `question_count` は、その時点までに質問した数。
@@ -37,6 +38,7 @@ _作成日：2026-09-27／設計書 `docs/app-design.md` の D10 の詳細_
 | 問題ごとの遊ばれ方         | 問題のページのページビューと、`ask` の件数                                                           |
 | 真相にたどり着いた割合     | 問題ごとの `puzzle_solved` と `reveal` の件数を比べる                                                |
 | 真相にたどり着くまでの手間 | `puzzle_solved` の `question_count`（質問数）と `attempt_count`（回答の回数）                        |
+| ヒントの使われ方           | 問題ごとの `hint` の件数と `hint_number` の内訳。3 つ目まで開かれる問題は、難しすぎる候補になる      |
 | 判定の出方                 | `ask` の `verdict` の内訳。`invalid`・`unknown` が多い問題は、問題文や真相の書き方を見直す候補になる |
 | 回答の惜しさ               | `solve_attempt` の `matched` / `total`                                                               |
 
