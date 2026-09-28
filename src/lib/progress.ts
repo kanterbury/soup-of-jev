@@ -10,6 +10,8 @@ export type Progress = {
   status: "playing" | "solved" | "gave-up";
   /** 正解したときか「真相を見る」で表示したときに保存する */
   truth?: string;
+  /** 開いたヒントの本文。開いた順（設計書 D11） */
+  hints?: string[];
 };
 
 // 問題データを変えたときに古い記録を捨てられるよう、キーにバージョンを入れる

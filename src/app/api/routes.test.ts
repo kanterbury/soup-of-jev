@@ -7,6 +7,7 @@ import {
 import { MemoryLikeStore, type LikeStore } from "@/lib/likes";
 import { getPuzzle, listPublicPuzzles } from "@/lib/puzzles";
 import { POST as ask } from "./ask/route";
+import { POST as hint } from "./hint/route";
 import { GET as getLikes, POST as postLike } from "./likes/route";
 import { POST as reveal } from "./reveal/route";
 import { POST as solve } from "./solve/route";
@@ -191,6 +192,35 @@ describe("POST /api/reveal", () => {
   it("存在しない問題は 404", async () => {
     expect((await reveal(post({ puzzleId: "nope" }))).status).toBe(404);
     expect((await reveal(post({}))).status).toBe(404);
+  });
+});
+
+describe("POST /api/hint", () => {
+  it("指定した番号のヒントだけを返す", async () => {
+    const { hints } = getPuzzle("umigame")!;
+    for (const [index, text] of hints.entries()) {
+      expect(
+        await (await hint(post({ puzzleId: "umigame", index }))).json(),
+      ).toEqual({ hint: text });
+    }
+  });
+
+  it("番号が範囲外か整数でなければ 400、存在しない問題は 404", async () => {
+    const count = getPuzzle("umigame")!.hints.length;
+    for (const index of [-1, count, 0.5, "0", undefined]) {
+      expect((await hint(post({ puzzleId: "umigame", index }))).status).toBe(
+        400,
+      );
+    }
+    expect((await hint(post({ puzzleId: "nope", index: 0 }))).status).toBe(404);
+  });
+});
+
+describe("GET /api/puzzles に渡す PublicPuzzle", () => {
+  it("ヒントは数だけで、本文を含まない", () => {
+    const umigame = listPublicPuzzles().find((p) => p.id === "umigame")!;
+    expect(umigame).not.toHaveProperty("hints");
+    expect(umigame.hintCount).toBe(getPuzzle("umigame")!.hints.length);
   });
 });
 

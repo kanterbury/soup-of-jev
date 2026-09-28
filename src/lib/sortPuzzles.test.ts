@@ -7,6 +7,7 @@ const puzzle = (id: string, number: number): PublicPuzzle => ({
   number,
   title: id,
   problem: "",
+  hintCount: 0,
 });
 const puzzles = [puzzle("a", 1), puzzle("b", 2), puzzle("c", 3)];
 const ids = (list: PublicPuzzle[]) => list.map((p) => p.id);
