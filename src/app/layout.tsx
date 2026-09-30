@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap"
         />
       </head>
-      <body className="min-h-dvh antialiased">
+      <body className="min-h-svh antialiased sm:min-h-dvh">
         <Backdrop />
         <div className="relative">{children}</div>
       </body>
