@@ -148,7 +148,7 @@ export function PlayView({
   );
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-[1440px] flex-col sm:gap-7 sm:px-8 sm:pt-7 sm:pb-10 lg:px-14">
+    <div className="mx-auto flex min-h-svh max-w-[1440px] flex-col sm:min-h-dvh sm:gap-7 sm:px-8 sm:pt-7 sm:pb-10 lg:px-14">
       {header}
 
       {progress === undefined ? null : finished && progress.truth ? (
@@ -320,15 +320,6 @@ function QuestionsHeading({ count }: { count: number }) {
 }
 
 function QuestionLog({ log }: { log: Progress["log"] }) {
-  const endRef = useRef<HTMLLIElement>(null);
-  const count = useRef(log.length);
-  // 質問が増えたら、最新の質問が見えるようにする
-  useEffect(() => {
-    if (log.length > count.current)
-      endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    count.current = log.length;
-  }, [log.length]);
-
   if (log.length === 0) {
     return (
       <p className="m-0 border-t border-gold/25 py-6 text-center text-sm text-dim">
@@ -341,7 +332,6 @@ function QuestionLog({ log }: { log: Progress["log"] }) {
       {log.map(({ question, verdict }, i) => (
         <li
           key={i}
-          ref={i === log.length - 1 ? endRef : undefined}
           className="flex items-center justify-between gap-3 border-b border-gold/16 px-1 py-3 sm:grid sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:gap-4 sm:py-4"
         >
           <span
@@ -374,6 +364,15 @@ function QuestionsPanel({
   const [asking, setAsking] = useState(false);
   const [error, setError] = useState<string>();
   const inputRef = useRef<HTMLInputElement>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+  const count = useRef(log.length);
+  // 質問が増えたら、最新の質問が見えるようにする。
+  // スマホ幅では質問欄が画面下に固定されて最新の質問に重なるため、質問欄の後ろ（本来の位置）までスクロールする
+  useEffect(() => {
+    if (log.length > count.current)
+      endRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    count.current = log.length;
+  }, [log.length]);
   const trimmed = question.trim();
   const canSend =
     !asking && trimmed.length > 0 && trimmed.length <= MAX_QUESTION_LENGTH;
@@ -414,7 +413,7 @@ function QuestionsPanel({
   }
 
   return (
-    <section className="flex grow flex-col gap-2 pt-4 sm:gap-4 lg:pt-0">
+    <section className="relative flex grow flex-col gap-2 pt-4 sm:gap-4 lg:pt-0">
       <div className="px-[18px] sm:px-0">
         <QuestionsHeading count={log.length} />
       </div>
@@ -490,6 +489,8 @@ function QuestionsPanel({
         </div>
         <PrivacyNote className="text-xs" />
       </form>
+      {/* スクロールの目印。absolute にして、flex の gap で余白が増えないようにする */}
+      <div ref={endRef} aria-hidden="true" className="absolute bottom-0" />
     </section>
   );
 }
